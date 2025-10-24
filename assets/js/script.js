@@ -301,6 +301,8 @@
       autoplay: null
     };
 
+    const CTA_WHATSAPP = "https://wa.me/524491964606";
+    const CTA_PHONE = "tel:+524491964606";
     const AUTOPLAY_INTERVAL = 8000;
 
     const fallbackProducts = [
@@ -308,10 +310,10 @@
         nombre: "Torretas S125D",
         descripcion:
           "Balizas LED de alta intensidad para monitoreo visual en líneas de producción industriales.",
-        categoria: "Señalización",
+        categoria: "Señalización industrial",
         imagen: "https://placehold.co/960x640/11243d/ffffff?text=Torretas+S125D",
         cta: "Solicitar cotización",
-        enlace: "#contacto",
+        enlace: "https://wa.me/524491964606",
         ctaSecundaria: "Ver ficha técnica",
         enlaceSecundario: "#contacto",
         alt: "Balizas para señalización industrial"
@@ -320,10 +322,10 @@
         nombre: "Gabinetes NEMA",
         descripcion:
           "Gabinetes para tableros de control con sellado IP66 listos para automatización y maniobra.",
-        categoria: "Distribución",
+        categoria: "Distribución eléctrica",
         imagen: "https://placehold.co/960x640/183a5c/ffffff?text=Gabinetes+Industriales",
         cta: "Agenda una llamada",
-        enlace: "#contacto",
+        enlace: "tel:+524491964606",
         ctaSecundaria: "Descargar catálogo",
         enlaceSecundario: "#contacto",
         alt: "Gabinete metálico para tablero eléctrico"
@@ -334,13 +336,52 @@
           "Detectores inductivos y capacitivos para automatización de procesos con certificaciones internacionales.",
         categoria: "Automatización",
         imagen: "https://placehold.co/960x640/1f4d7a/ffffff?text=Sensores+Industriales",
-        cta: "Hablar con un asesor",
-        enlace: "#contacto",
+        cta: "Hablar por WhatsApp",
+        enlace: "https://wa.me/524491964606",
         ctaSecundaria: "Solicitar demo",
         enlaceSecundario: "#contacto",
         alt: "Sensores industriales montados en riel"
       }
     ];
+
+
+    const resolveActionLink = (text, fallback) => {
+      const rawText = (text || "").toString();
+      const normalized = rawText.toLowerCase();
+      const simplified = normalized.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const baseFallback = (fallback || "").toString().trim();
+
+      if (simplified.includes("llamada") || simplified.includes("llamar")) {
+        return CTA_PHONE;
+      }
+
+      if (
+        simplified.includes("whatsapp") ||
+        simplified.includes("mensaje") ||
+        simplified.includes("cotiza") ||
+        simplified.includes("asesor")
+      ) {
+        return CTA_WHATSAPP;
+      }
+
+      if (baseFallback && baseFallback !== "#contacto" && baseFallback !== "#") {
+        return baseFallback;
+      }
+
+      return "#contacto";
+    };
+
+    const applyLinkAttributes = (anchor, href) => {
+      const safeHref = (href || "#contacto").toString();
+      anchor.href = safeHref;
+      if (safeHref.startsWith("http")) {
+        anchor.target = "_blank";
+        anchor.rel = "noopener";
+      } else {
+        anchor.removeAttribute("target");
+        anchor.removeAttribute("rel");
+      }
+    };
 
     const setLoading = (value) => {
       if (value) {
@@ -451,21 +492,21 @@
       const ctaGroup = document.createElement("div");
       ctaGroup.className = "catalogo-cta-group";
 
+      const primaryText = producto.cta || "Solicitar cotización";
+      const primaryLink = resolveActionLink(primaryText, producto.enlace);
       const primaryCta = document.createElement("a");
       primaryCta.className = "catalogo-cta catalogo-cta--primary";
-      primaryCta.href = producto.enlace || "#contacto";
-      primaryCta.textContent = producto.cta || "Solicitar cotización";
-      primaryCta.rel = "noopener";
+      primaryCta.textContent = primaryText;
+      applyLinkAttributes(primaryCta, primaryLink);
       ctaGroup.appendChild(primaryCta);
 
-      const secondaryText = producto.ctaSecundaria || "Hablar con un asesor";
-      const secondaryLink = producto.enlaceSecundario || "#contacto";
+      const secondaryText = (producto.ctaSecundaria || "").trim();
       if (secondaryText) {
+        const secondaryLink = resolveActionLink(secondaryText, producto.enlaceSecundario);
         const secondaryCta = document.createElement("a");
         secondaryCta.className = "catalogo-cta catalogo-cta--secondary";
-        secondaryCta.href = secondaryLink;
         secondaryCta.textContent = secondaryText;
-        secondaryCta.rel = "noopener";
+        applyLinkAttributes(secondaryCta, secondaryLink);
         ctaGroup.appendChild(secondaryCta);
       }
 
