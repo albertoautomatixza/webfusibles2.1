@@ -444,7 +444,8 @@
       const desc = document.createElement("p");
       desc.className = "catalogo-description";
       desc.textContent =
-        producto.descripcion || "Actualizamos inventario y precios directamente desde Google Sheets.";
+        producto.descripcion ||
+        "Ofrecemos sensores, protecciones y tableros certificados con disponibilidad inmediata y soporte especializado para tus proyectos.";
       info.appendChild(desc);
 
       const ctaGroup = document.createElement("div");
