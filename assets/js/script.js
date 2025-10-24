@@ -308,9 +308,10 @@
     const defs = document.createElementNS(svgNS, "defs");
     defs.innerHTML =
       '<linearGradient id="beam-gradient" x1="0%" y1="0%" x2="100%" y2="0%">' +
-      '<stop offset="0%" stop-color="#9cc9ff" stop-opacity="0.2"></stop>' +
-      '<stop offset="50%" stop-color="#197acf" stop-opacity="1"></stop>' +
-      '<stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.6"></stop>' +
+      '<stop offset="0%" stop-color="#d9e7fb" stop-opacity="0"></stop>' +
+      '<stop offset="35%" stop-color="#1f6edc" stop-opacity="0.95"></stop>' +
+      '<stop offset="65%" stop-color="#1f6edc" stop-opacity="0.85"></stop>' +
+      '<stop offset="100%" stop-color="#d9e7fb" stop-opacity="0"></stop>' +
       '</linearGradient>';
     overlay.appendChild(defs);
 
@@ -336,7 +337,7 @@
     const rightNodes = [...container.querySelectorAll('[data-beam-source="core"]')];
 
     leftNodes.forEach((node, index) =>
-      createConnection(node, center, node.dataset.beamCurve || "auto", index)
+      createConnection(center, node, node.dataset.beamCurve || "auto", index)
     );
     rightNodes.forEach((node, index) =>
       createConnection(center, node, node.dataset.beamCurve || "auto", leftNodes.length + index)
@@ -386,6 +387,16 @@
         const d = computePath(fromRect, toRect, connection.curve);
         connection.pathBase.setAttribute("d", d);
         connection.pathGlow.setAttribute("d", d);
+
+        const length = connection.pathGlow.getTotalLength();
+        const segment = Math.min(Math.max(length * 0.32, 48), 140);
+        const travel = Math.min(Math.max(length - segment * 0.5, segment * 0.75), length);
+        const duration = Math.min(Math.max(length / 70, 3.2), 6.2);
+
+        connection.pathGlow.style.setProperty("--beam-total", length.toFixed(2));
+        connection.pathGlow.style.setProperty("--beam-segment", segment.toFixed(2));
+        connection.pathGlow.style.setProperty("--beam-offset-end", `-${travel.toFixed(2)}`);
+        connection.pathGlow.style.setProperty("--beam-duration", `${duration.toFixed(2)}s`);
       });
     };
 
