@@ -104,17 +104,42 @@
     </div>
   </div>
 </section>
-<section id="catalogo" class="catalogo">
+<section id="catalogo" class="catalogo catalogo-dinamico" data-google-sheet="https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/gviz/tq?tqx=out:json">
   <div class="container">
     <div class="section-header">
-      <h2 class="section-title">Catálogo de productos</h2>
-      <p class="section-description">Contamos con un amplio inventario de productos eléctricos y de automatización. Nuestro catálogo está en constante actualización y pronto se conectará con Google Sheets para ofrecer información en tiempo real.</p>
+      <h2 class="section-title">Productos para automatización y control industrial</h2>
+      <p class="section-description">Nuestro catálogo se sincroniza con un Google Spreadsheet público para mostrar imágenes y fichas actualizadas sin reconstruir el sitio. Al publicar nuevos productos en la hoja, aparecerán aquí de forma automática.</p>
     </div>
-    <div id="productosContainer" class="productos-grid">
-      <article class="producto-card"><div class="producto-image"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27320%27%20height%3D%27200%27%20viewBox%3D%270%200%20320%20200%27%3E%3Crect%20fill%3D%27%23E5EFF8%27%20width%3D%27320%27%20height%3D%27200%27/%3E%3Ctext%20x%3D%2750%25%27%20y%3D%2750%25%27%20fill%3D%27%23214464%27%20font-family%3D%27Arial%2C%20sans-serif%27%20font-size%3D%2725%27%20dominant-baseline%3D%27middle%27%20text-anchor%3D%27middle%27%3ESistemas%20de%20Control%3C/text%3E%3C/svg%3E" alt="Panel de control industrial" loading="lazy" width="320" height="200"></div><h3 class="producto-title">Sistemas de Control</h3><p class="producto-description">PLCs, HMIs y soluciones de supervisión para automatizar líneas de producción con confianza.</p><a href="#contacto" class="producto-link">Solicitar ficha técnica</a></article>
-      <article class="producto-card"><div class="producto-image"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27320%27%20height%3D%27200%27%20viewBox%3D%270%200%20320%20200%27%3E%3Crect%20fill%3D%27%23E5EFF8%27%20width%3D%27320%27%20height%3D%27200%27/%3E%3Ctext%20x%3D%2750%25%27%20y%3D%2750%25%27%20fill%3D%27%23214464%27%20font-family%3D%27Arial%2C%20sans-serif%27%20font-size%3D%2725%27%20dominant-baseline%3D%27middle%27%20text-anchor%3D%27middle%27%3EDistribuci%C3%B3n%20El%C3%A9ctrica%3C/text%3E%3C/svg%3E" alt="Tablero de distribución eléctrica" loading="lazy" width="320" height="200"></div><h3 class="producto-title">Distribución Eléctrica</h3><p class="producto-description">Tableros, protecciones y accesorios certificados para instalaciones comerciales y residenciales.</p><a href="#contacto" class="producto-link">Solicitar ficha técnica</a></article>
-      <article class="producto-card"><div class="producto-image"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27320%27%20height%3D%27200%27%20viewBox%3D%270%200%20320%20200%27%3E%3Crect%20fill%3D%27%23E5EFF8%27%20width%3D%27320%27%20height%3D%27200%27/%3E%3Ctext%20x%3D%2750%25%27%20y%3D%2750%25%27%20fill%3D%27%23214464%27%20font-family%3D%27Arial%2C%20sans-serif%27%20font-size%3D%2725%27%20dominant-baseline%3D%27middle%27%20text-anchor%3D%27middle%27%3EComponentes%20Industriales%3C/text%3E%3C/svg%3E" alt="Componentes eléctricos industriales" loading="lazy" width="320" height="200"></div><h3 class="producto-title">Componentes Industriales</h3><p class="producto-description">Interruptores, contactores y elementos electromecánicos preparados para entornos críticos.</p><a href="#contacto" class="producto-link">Solicitar ficha técnica</a></article>
-      <article class="producto-card"><div class="producto-image"><img src="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27320%27%20height%3D%27200%27%20viewBox%3D%270%200%20320%20200%27%3E%3Crect%20fill%3D%27%23E5EFF8%27%20width%3D%27320%27%20height%3D%27200%27/%3E%3Ctext%20x%3D%2750%25%27%20y%3D%2750%25%27%20fill%3D%27%23214464%27%20font-family%3D%27Arial%2C%20sans-serif%27%20font-size%3D%2725%27%20dominant-baseline%3D%27middle%27%20text-anchor%3D%27middle%27%3EInstrumentaci%C3%B3n%3C/text%3E%3C/svg%3E" alt="Instrumentos de medición eléctrica" loading="lazy" width="320" height="200"></div><h3 class="producto-title">Instrumentación</h3><p class="producto-description">Equipos de medición y monitoreo para mantenimiento predictivo y control de procesos.</p><a href="#contacto" class="producto-link">Solicitar ficha técnica</a></article>
+    <div class="catalogo-hero catalogo-highlight">
+      <div class="catalogo-slider">
+        <div class="catalogo-stage" id="catalogoStage" role="group" aria-label="Productos destacados">
+          <article class="catalogo-slide is-active" data-placeholder>
+            <div class="catalogo-media">
+              <img src="https://placehold.co/800x520/1b3353/ffffff?text=Catalogo+conectado" alt="Vista preliminar del catálogo en línea" loading="lazy" width="800" height="520">
+            </div>
+            <div class="catalogo-info">
+              <span class="catalogo-pill">Catálogo conectado</span>
+              <h3 class="catalogo-title">Sincronizando productos desde Google Sheets</h3>
+              <p class="catalogo-description">Publica tu hoja de cálculo y pega la URL del feed JSON en el atributo <code>data-google-sheet</code> para mostrar productos con imágenes, descripciones y enlaces actualizados sin tocar el código.</p>
+              <div class="catalogo-cta-group">
+                <a class="catalogo-cta catalogo-cta--primary" href="#contacto">Cotiza ahora</a>
+                <a class="catalogo-cta catalogo-cta--secondary" href="#contacto">Solicitar asesoría</a>
+              </div>
+            </div>
+          </article>
+        </div>
+        <div class="catalogo-nav">
+          <div class="catalogo-dots" id="catalogoDots" role="tablist" aria-label="Seleccionar producto"></div>
+          <div class="catalogo-arrows">
+            <button class="catalogo-arrow" type="button" data-slider-prev aria-label="Producto anterior">
+              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <button class="catalogo-arrow" type="button" data-slider-next aria-label="Producto siguiente">
+              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
