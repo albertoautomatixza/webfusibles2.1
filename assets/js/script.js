@@ -218,7 +218,7 @@
 
   const initRevealObserver = () => {
     const elements = document.querySelectorAll(
-      ".sector-card, .catalogo-slider, .marca-item, .valor-item"
+      ".sector-card, .catalogo-slider, .marca-item, .valor-item, .banner-slider"
     );
 
     if (!elements.length || !("IntersectionObserver" in window)) return;
@@ -281,6 +281,311 @@
       console.warn("No se pudo interpretar la respuesta de Google Sheets", error);
       return [];
     }
+  };
+
+  const parseBannerSheetResponse = (raw) => {
+    if (!raw) return [];
+
+    const start = raw.indexOf("{");
+    const end = raw.lastIndexOf("}");
+    if (start === -1 || end === -1 || end <= start) return [];
+
+    try {
+      const json = JSON.parse(raw.slice(start, end + 1));
+      const rows = json?.table?.rows ?? [];
+      const cols = json?.table?.cols ?? [];
+
+      const normalize = (value) =>
+        typeof value === "string" ? value.trim() : value ? String(value).trim() : "";
+
+      if (!rows.length) return [];
+
+      const headerMap = new Map();
+
+      cols.forEach((col, index) => {
+        const label = normalize(col?.label);
+        if (label) headerMap.set(label.toLowerCase(), index);
+      });
+
+      const rawRows = rows.map((row) => row?.c ?? []);
+      const firstRowValues = rawRows[0]?.map((cell) => normalize(cell?.v ?? cell?.f)) ?? [];
+      const headerKeywords = ["imagen", "image", "banner", "url imagen", "url"];
+      const hasHeaderRow = firstRowValues.some((value) => headerKeywords.includes(value.toLowerCase()));
+
+      if (hasHeaderRow) {
+        firstRowValues.forEach((value, index) => {
+          const key = value.toLowerCase();
+          if (key) headerMap.set(key, index);
+        });
+      }
+
+      const findIndex = (keys, fallback) => {
+        for (const key of keys) {
+          const normalized = key.toLowerCase();
+          if (headerMap.has(normalized)) return headerMap.get(normalized);
+        }
+        return fallback;
+      };
+
+      const indexes = {
+        title: findIndex(["titulo", "título", "title"], hasHeaderRow ? 0 : 0),
+        description: findIndex(["descripcion", "descripción", "description", "texto"], hasHeaderRow ? 1 : 1),
+        image: findIndex(["imagen", "image", "banner", "url imagen"], hasHeaderRow ? 2 : 2),
+        link: findIndex(["enlace", "link", "destino", "cta"], hasHeaderRow ? 3 : 3),
+        cta: findIndex(["boton", "cta", "texto cta"], hasHeaderRow ? 4 : 4),
+        alt: findIndex(["alt", "texto alt", "descripcion alt"], hasHeaderRow ? 5 : 5)
+      };
+
+      const dataRows = hasHeaderRow ? rawRows.slice(1) : rawRows;
+
+      const getCellValue = (cells, index) => {
+        if (index < 0 || index >= cells.length) return "";
+        const cell = cells[index];
+        return normalize(cell?.v ?? cell?.f ?? "");
+      };
+
+      const uniqueIndex = (index, fallback) => {
+        if (index === indexes.image && fallback !== indexes.image) return fallback;
+        return index;
+      };
+
+      indexes.link = uniqueIndex(indexes.link, 3);
+      indexes.cta = uniqueIndex(indexes.cta, 4);
+
+      return dataRows
+        .map((cells) => {
+          const image = getCellValue(cells, indexes.image);
+          if (!image) return null;
+
+          const title = getCellValue(cells, indexes.title);
+          const description = getCellValue(cells, indexes.description);
+          const link = getCellValue(cells, indexes.link);
+          const cta = getCellValue(cells, indexes.cta);
+          const alt = getCellValue(cells, indexes.alt) || title || description || "Banner promocional";
+
+          return {
+            title,
+            description,
+            image,
+            link,
+            cta,
+            alt
+          };
+        })
+        .filter((item) => item && item.image)
+        .slice(0, 5);
+    } catch (error) {
+      console.warn("No se pudo interpretar la hoja de banners", error);
+      return [];
+    }
+  };
+
+  const initBannerCarousel = () => {
+    const section = document.querySelector("[data-banner-sheet]");
+    if (!section) return;
+
+    const slider = section.querySelector(".banner-slider");
+    const stage = section.querySelector("#bannerStage");
+    const dots = section.querySelector("#bannerDots");
+    const prevBtn = section.querySelector("[data-banner-prev]");
+    const nextBtn = section.querySelector("[data-banner-next]");
+
+    if (!slider || !stage || !dots || !prevBtn || !nextBtn) return;
+
+    const AUTOPLAY_INTERVAL = 7000;
+    const state = { items: [], current: 0, autoplay: null };
+
+    const fallbackBanners = [
+      {
+        title: "Soldadura certificada",
+        description: "Componentes listos para aplicaciones electrónicas y de manufactura.",
+        image: "https://placehold.co/1200x420/162b4b/ffffff?text=Soldadura+certificada",
+        link: "#contacto",
+        alt: "Carrete de soldadura certificado",
+        placeholder: true
+      },
+      {
+        title: "Torretas y señalización",
+        description: "Balizas LED para monitoreo visual en líneas de producción.",
+        image: "https://placehold.co/1200x420/1d3761/ffffff?text=Torretas+y+senalizacion",
+        link: "#catalogo",
+        alt: "Torretas LED para señalización",
+        placeholder: true
+      },
+      {
+        title: "Iluminación industrial",
+        description: "Luminarias y barras LED resistentes para entornos exigentes.",
+        image: "https://placehold.co/1200x420/0f213b/ffffff?text=Iluminacion+industrial",
+        link: "https://wa.me/524491964606",
+        alt: "Luminarias industriales en rack",
+        placeholder: true
+      }
+    ];
+
+    const setLoading = (value) => {
+      slider.classList.toggle("is-loading", Boolean(value));
+    };
+
+    const createSlide = (banner) => {
+      const slide = document.createElement("article");
+      slide.className = "banner-slide";
+      if (banner.placeholder) {
+        slide.dataset.placeholder = "true";
+      }
+
+      const wrapper = document.createElement(banner.link ? "a" : "div");
+      wrapper.className = "banner-media";
+
+      if (banner.link) {
+        wrapper.href = banner.link;
+        if (/^https?:/i.test(banner.link)) {
+          wrapper.target = "_blank";
+          wrapper.rel = "noopener";
+        }
+      }
+
+      const img = document.createElement("img");
+      img.src = banner.image;
+      img.alt = banner.alt || banner.title || banner.description || "Banner promocional";
+      img.loading = "lazy";
+      img.decoding = "async";
+
+      wrapper.appendChild(img);
+      slide.appendChild(wrapper);
+
+      return slide;
+    };
+
+    const updateDots = () => {
+      const dotElements = dots.querySelectorAll(".catalogo-dot");
+      dotElements.forEach((dot, index) => {
+        dot.classList.toggle("is-active", index === state.current);
+      });
+    };
+
+    const setActive = (index) => {
+      state.items.forEach((item, itemIndex) => {
+        item.classList.toggle("is-active", itemIndex === index);
+      });
+      state.current = index;
+      updateDots();
+    };
+
+    const goTo = (index, manual = false) => {
+      if (!state.items.length) return;
+
+      const total = state.items.length;
+      const nextIndex = ((index % total) + total) % total;
+
+      if (nextIndex === state.current) {
+        if (manual) {
+          stopAutoplay();
+          startAutoplay();
+        }
+        return;
+      }
+
+      setActive(nextIndex);
+
+      if (manual) {
+        stopAutoplay();
+        startAutoplay();
+      }
+    };
+
+    const stopAutoplay = () => {
+      if (state.autoplay) {
+        window.clearInterval(state.autoplay);
+        state.autoplay = null;
+      }
+    };
+
+    const startAutoplay = () => {
+      if (state.autoplay || state.items.length <= 1) return;
+      state.autoplay = window.setInterval(() => {
+        goTo(state.current + 1);
+      }, AUTOPLAY_INTERVAL);
+    };
+
+    const renderBanners = (banners) => {
+      stopAutoplay();
+      state.current = 0;
+      stage.innerHTML = "";
+      dots.innerHTML = "";
+
+      const items = banners.slice(0, 5);
+      if (!items.length) {
+        state.items = [];
+        updateDots();
+        return;
+      }
+
+      items.forEach((banner, index) => {
+        const slide = createSlide(banner);
+        slide.dataset.index = String(index);
+        stage.appendChild(slide);
+
+        const dot = document.createElement("button");
+        dot.type = "button";
+        dot.className = "catalogo-dot";
+        dot.setAttribute("role", "tab");
+
+        const label = banner.title || banner.description || banner.alt;
+        dot.setAttribute("aria-label", label ? `Ver banner ${label}` : `Ver banner ${index + 1}`);
+        dot.addEventListener("click", () => goTo(index, true));
+        dots.appendChild(dot);
+      });
+
+      state.items = Array.from(stage.children);
+      setActive(0);
+      startAutoplay();
+    };
+
+    const handleBanners = (banners) => {
+      setLoading(false);
+      if (!banners.length) {
+        renderBanners(fallbackBanners);
+        return;
+      }
+      renderBanners(banners);
+    };
+
+    const cargarDesdeHoja = async () => {
+      const sheetUrl = section.dataset.bannerSheet?.trim();
+      if (!sheetUrl) {
+        handleBanners(fallbackBanners);
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const response = await fetch(sheetUrl, { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`Estado ${response.status}`);
+        }
+        const text = await response.text();
+        const banners = parseBannerSheetResponse(text);
+        handleBanners(banners);
+      } catch (error) {
+        console.warn("No fue posible cargar los banners desde Google Sheets", error);
+        handleBanners([]);
+      }
+    };
+
+    window.actualizarBanners = (banners = []) => {
+      if (!Array.isArray(banners)) return;
+      setLoading(false);
+      renderBanners(banners);
+    };
+
+    prevBtn.addEventListener("click", () => goTo(state.current - 1, true));
+    nextBtn.addEventListener("click", () => goTo(state.current + 1, true));
+
+    slider.addEventListener("mouseenter", stopAutoplay);
+    slider.addEventListener("mouseleave", startAutoplay);
+
+    cargarDesdeHoja();
   };
 
   const initDynamicCatalog = () => {
@@ -721,6 +1026,7 @@
     initScrollEffects();
     initContactForm();
     initRevealObserver();
+    initBannerCarousel();
     initDynamicCatalog();
     initBeamConnections();
     console.log("Sitio inicializado sin dependencias de binarios.");

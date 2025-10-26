@@ -8,3 +8,19 @@
 .catalogo-info,.catalogo-info .catalogo-title,.catalogo-info .catalogo-description,.catalogo-pill{color:var(--azul-prusia)}
 .catalogo-info .catalogo-description{color:rgba(33,68,100,0.86)}
 .catalogo-pill{background:rgba(33,68,100,0.12)}
+
+
+.banner-carousel{padding:calc(var(--spacing)*9) 0;background:linear-gradient(180deg,#f8fbff 0%,#ffffff 100%);}
+.banner-slider{position:relative;border-radius:28px;overflow:hidden;background:var(--blanco);box-shadow:0 26px 65px rgba(33,68,100,0.18);padding:calc(var(--spacing)*4);display:flex;flex-direction:column;gap:calc(var(--spacing)*4);}
+.banner-slider.is-loading::after{content:'';position:absolute;inset:0;background:linear-gradient(120deg,rgba(33,68,100,0.08),rgba(255,255,255,0.6),rgba(33,68,100,0.08));background-size:200% 100%;animation:bannerShimmer 1.6s ease-in-out infinite;pointer-events:none;}
+.banner-stage{position:relative;min-height:320px;border-radius:20px;overflow:hidden;background:var(--gris-claro);}
+.banner-slide{position:absolute;inset:0;opacity:0;transform:translateX(6%);transition:opacity .6s ease,transform .6s ease;}
+.banner-slide.is-active{opacity:1;transform:translateX(0);}
+.banner-slide[data-placeholder] .banner-media{background:linear-gradient(135deg,#1b3353,#214464);}
+.banner-media{width:100%;height:100%;display:block;}
+.banner-media img{width:100%;height:100%;object-fit:cover;display:block;}
+.banner-controls{display:flex;justify-content:space-between;align-items:center;gap:calc(var(--spacing)*3);}
+.banner-dots{display:flex;gap:calc(var(--spacing));align-items:center;}
+.banner-arrows{display:flex;gap:calc(var(--spacing)*1.5);}
+@media (max-width:768px){.banner-slider{padding:calc(var(--spacing)*3);}.banner-stage{min-height:220px;}.banner-controls{flex-direction:column;align-items:flex-start;gap:calc(var(--spacing)*2);}}
+@keyframes bannerShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
