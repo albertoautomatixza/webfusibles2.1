@@ -72,14 +72,14 @@
 
 .whatsapp-float-label {
   padding: 16px 20px;
-  background: #214464;
-  color: #ffffff;
+  background: #dfe4eb;
+  color: #214464;
   border-radius: 16px;
   font-size: 1rem;
   font-weight: 600;
   line-height: 1;
   white-space: nowrap;
-  box-shadow: 0 10px 24px rgba(33, 68, 100, 0.35);
+  box-shadow: 0 10px 24px rgba(33, 68, 100, 0.18);
 }
 
 @media (max-width: 640px) {
