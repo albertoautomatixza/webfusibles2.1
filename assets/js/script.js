@@ -16,6 +16,67 @@
     return `data:image/svg+xml,${encodeURIComponent(svg)}`;
   };
 
+  let bannerGraphicId = 0;
+  const createBannerIllustration = ({
+    badge,
+    title,
+    subtitle,
+    highlights = [],
+    accent = "#25D366",
+    accentSecondary = "#1A83FF",
+    background = ["#0F1F39", "#1B3353"]
+  }) => {
+    bannerGraphicId += 1;
+    const gradientId = `bannerGradient${bannerGraphicId}`;
+    const accentId = `accentGradient${bannerGraphicId}`;
+    const highlightElements = highlights
+      .slice(0, 4)
+      .map((text, index) => {
+        const y = 250 + index * 38;
+        return `<tspan x="640" y="${y}" font-size="26" fill="#E5EFF8">• ${text}</tspan>`;
+      })
+      .join("");
+
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420">
+        <defs>
+          <linearGradient id="${gradientId}" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="${background[0]}" />
+            <stop offset="100%" stop-color="${background[1]}" />
+          </linearGradient>
+          <linearGradient id="${accentId}" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="${accent}" />
+            <stop offset="100%" stop-color="${accentSecondary}" />
+          </linearGradient>
+          <filter id="shadow${bannerGraphicId}" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="rgba(10,19,36,0.45)" />
+          </filter>
+        </defs>
+        <rect width="1200" height="420" fill="url(#${gradientId})" rx="28" />
+        <path d="M948 70C1046 70 1110 110 1156 164C1189 202 1188 270 1152 308C1096 368 964 362 880 336C796 310 716 318 676 348C650 368 604 366 574 350C518 320 514 252 556 204C632 118 732 70 948 70Z" fill="rgba(255,255,255,0.05)" />
+        <g filter="url(#shadow${bannerGraphicId})">
+          <path d="M918 90C1030 90 1108 152 1110 230C1112 308 1034 360 922 360C810 360 732 298 730 220C728 142 806 90 918 90Z" fill="rgba(17,40,70,0.75)" />
+        </g>
+        <path d="M874 140C952 104 1036 132 1082 182C1128 232 1124 310 1046 346C968 382 884 354 838 304C792 254 796 176 874 140Z" fill="rgba(28,63,110,0.75)" />
+        <circle cx="864" cy="224" r="72" fill="url(#${accentId})" opacity="0.85" />
+        <rect x="640" y="110" width="220" height="46" rx="23" fill="rgba(229,239,248,0.1)" stroke="${accent}" stroke-width="2" />
+        <text x="750" y="140" font-family="'Segoe UI', Arial, sans-serif" font-size="22" text-anchor="middle" fill="#E5EFF8">${badge}</text>
+        <text x="640" y="196" font-family="'Segoe UI', Arial, sans-serif" font-size="52" font-weight="600" fill="#FFFFFF">${title}</text>
+        <text x="640" y="232" font-family="'Segoe UI', Arial, sans-serif" font-size="26" fill="#D3E4F8">${subtitle}</text>
+        <text font-family="'Segoe UI', Arial, sans-serif" font-size="26">${highlightElements}</text>
+        <rect x="140" y="118" width="320" height="184" rx="24" fill="rgba(12,30,54,0.4)" stroke="rgba(229,239,248,0.22)" stroke-width="2" />
+        <path d="M188 160C188 148 198 138 210 138H390C402 138 412 148 412 160V260C412 272 402 282 390 282H210C198 282 188 272 188 260V160Z" fill="#111D35" />
+        <rect x="216" y="174" width="168" height="16" rx="8" fill="${accent}" opacity="0.85" />
+        <rect x="216" y="206" width="144" height="14" rx="7" fill="#E5EFF8" opacity="0.75" />
+        <rect x="216" y="234" width="112" height="12" rx="6" fill="#98B7D7" opacity="0.65" />
+        <rect x="344" y="174" width="48" height="72" rx="12" fill="rgba(20,44,80,0.8)" />
+        <rect x="352" y="186" width="32" height="48" rx="10" fill="rgba(229,239,248,0.9)" />
+      </svg>
+    `;
+
+    return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+  };
+
   class IconCloudSimple {
     constructor(container, icons, options = {}) {
       this.container = container;
@@ -399,25 +460,49 @@
       {
         title: "Soldadura certificada",
         description: "Componentes listos para aplicaciones electrónicas y de manufactura.",
-        image: "https://placehold.co/1200x420/162b4b/ffffff?text=Soldadura+certificada",
-        link: "#contacto",
-        alt: "Carrete de soldadura certificado",
-        placeholder: true
-      },
-      {
-        title: "Torretas y señalización",
-        description: "Balizas LED para monitoreo visual en líneas de producción.",
-        image: "https://placehold.co/1200x420/1d3761/ffffff?text=Torretas+y+senalizacion",
-        link: "#catalogo",
-        alt: "Torretas LED para señalización",
-        placeholder: true
-      },
-      {
-        title: "Iluminación industrial",
-        description: "Luminarias y barras LED resistentes para entornos exigentes.",
-        image: "https://placehold.co/1200x420/0f213b/ffffff?text=Iluminacion+industrial",
+        image: createBannerIllustration({
+          badge: "Kombitec",
+          title: "Soldadura certificada",
+          subtitle: "Componentes estaño y plomo",
+          highlights: ["Variedad de calibres", "Presentaciones para OEM", "Entrega nacional"],
+          accent: "#25D366",
+          accentSecondary: "#1A83FF",
+          background: ["#0B1528", "#1D2F4C"]
+        }),
         link: "https://wa.me/524491964606",
-        alt: "Luminarias industriales en rack",
+        alt: "Carrete de soldadura certificada",
+        placeholder: true
+      },
+      {
+        title: "Serie QEL y QELS",
+        description: "Torretas LED resistentes para ambientes industriales.",
+        image: createBannerIllustration({
+          badge: "Qlight",
+          title: "Serie QEL y QELS",
+          subtitle: "Voltajes disponibles 24 VDC y 120 VAC",
+          highlights: ["Montaje con brazo articulado", "Material policarbonato de alta resistencia", "Soporte de montaje incluido"],
+          accent: "#1A83FF",
+          accentSecondary: "#6DD4FF",
+          background: ["#0E2141", "#10345F"]
+        }),
+        link: "#catalogo",
+        alt: "Torretas industriales serie QEL y QELS",
+        placeholder: true
+      },
+      {
+        title: "Proyectos llave en mano",
+        description: "Diseñamos soluciones integrales de automatización.",
+        image: createBannerIllustration({
+          badge: "Fusibles Protección",
+          title: "Proyectos llave en mano",
+          subtitle: "Suministro, integración y soporte",
+          highlights: ["Tableros certificados", "Ingeniería personalizada", "Instalación y capacitación"],
+          accent: "#214464",
+          accentSecondary: "#3CA7FF",
+          background: ["#0D1D33", "#163258"]
+        }),
+        link: "#contacto",
+        alt: "Equipo revisando tablero eléctrico",
         placeholder: true
       }
     ];
