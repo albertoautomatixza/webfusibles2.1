@@ -534,3 +534,119 @@ html,body{max-width:100%;overflow-x:hidden}
   color: #FFFFFF;
 }
 .nav-menu{margin-left:auto}
+@media (max-width: 900px) {
+  .footer-content {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: calc(var(--spacing) * 3);
+  }
+}
+
+@media (max-width: 768px) {
+  .footer {
+    padding: calc(var(--spacing) * 4) 0 calc(var(--spacing) * 3);
+  }
+
+  .footer-newsletter {
+    padding-bottom: calc(var(--spacing) * 3);
+    margin-bottom: calc(var(--spacing) * 2);
+  }
+
+  .newsletter-content {
+    flex-direction: column;
+    align-items: stretch;
+    gap: calc(var(--spacing) * 2);
+    text-align: center;
+  }
+
+  .newsletter-title {
+    white-space: normal;
+    font-size: 18px;
+  }
+
+  .newsletter-form {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .newsletter-input,
+  .newsletter-button {
+    width: 100%;
+  }
+
+  .footer-social-center {
+    flex-direction: column;
+    gap: calc(var(--spacing) * 2);
+    text-align: center;
+  }
+
+  .footer-social {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: calc(var(--spacing) * 1.5);
+  }
+
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: calc(var(--spacing) * 4);
+  }
+
+  .footer-column,
+  .footer-column .footer-links {
+    align-items: center;
+    text-align: center;
+  }
+
+  .footer-logo {
+    margin: 0 auto;
+  }
+
+  .footer-contact {
+    align-items: center;
+  }
+
+  .contact-whatsapp {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: calc(var(--spacing) * 2);
+  }
+
+  .contact-whatsapp svg {
+    margin: 0;
+  }
+
+  .contact-address p {
+    text-align: center;
+  }
+
+  .google-rating {
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .google-rating-content {
+    align-items: center;
+    text-align: center;
+  }
+
+  .footer-bottom {
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .newsletter-title {
+    font-size: 16px;
+  }
+
+  .newsletter-input {
+    font-size: 14px;
+  }
+
+  .google-rating {
+    padding: calc(var(--spacing) * 1.5);
+  }
+}
