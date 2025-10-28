@@ -239,125 +239,6 @@
     });
   };
 
-  const initThemeToggle = () => {
-    const toggles = document.querySelectorAll(".theme-toggle");
-    if (!toggles.length) return;
-
-    const root = document.documentElement;
-    const themeMeta = document.querySelector("meta[name='theme-color']");
-    const prefersDark =
-      typeof window.matchMedia === "function"
-        ? window.matchMedia("(prefers-color-scheme: dark)")
-        : null;
-    const TRANSITION_DURATION = 450;
-
-    const setTheme = (theme, persist = true) => {
-      const normalized = theme === "dark" ? "dark" : "light";
-      root.setAttribute("data-theme", normalized);
-      root.classList.toggle("theme-dark", normalized === "dark");
-      root.style.colorScheme = normalized === "dark" ? "dark" : "light";
-
-      toggles.forEach((button) => {
-        button.setAttribute("data-theme", normalized);
-        button.setAttribute("aria-pressed", normalized === "dark" ? "true" : "false");
-        button.setAttribute(
-          "title",
-          normalized === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"
-        );
-      });
-
-      if (themeMeta) {
-        themeMeta.setAttribute("content", normalized === "dark" ? "#050d1a" : "#197ACF");
-      }
-
-      if (persist) {
-        localStorage.setItem("theme", normalized);
-      }
-    };
-
-    const storedPreference = localStorage.getItem("theme");
-    const storedIsValid = storedPreference === "dark" || storedPreference === "light";
-    const systemPrefersDark = prefersDark && prefersDark.matches;
-    const initialTheme = storedIsValid ? storedPreference : systemPrefersDark ? "dark" : "light";
-
-    setTheme(initialTheme, storedIsValid);
-
-    const animateTransition = (button, theme) => {
-      const nextTheme = theme === "dark" ? "dark" : "light";
-
-      if (typeof document.startViewTransition !== "function") {
-        setTheme(nextTheme, true);
-        return;
-      }
-
-      try {
-        const transition = document.startViewTransition(() => {
-          setTheme(nextTheme, false);
-        });
-
-        transition.ready
-          .then(() => {
-            const rect = button.getBoundingClientRect();
-            const x = rect.left + rect.width / 2;
-            const y = rect.top + rect.height / 2;
-            const maxRadius = Math.hypot(
-              Math.max(x, window.innerWidth - x),
-              Math.max(y, window.innerHeight - y)
-            );
-
-            document.documentElement.animate(
-              {
-                clipPath: [
-                  `circle(0px at ${x}px ${y}px)`,
-                  `circle(${maxRadius}px at ${x}px ${y}px)`
-                ]
-              },
-              {
-                duration: TRANSITION_DURATION,
-                easing: "ease-in-out",
-                fill: "both",
-                pseudoElement: "::view-transition-new(root)"
-              }
-            );
-          })
-          .catch(() => {
-            setTheme(nextTheme, true);
-          });
-
-        transition.finished
-          .then(() => {
-            localStorage.setItem("theme", nextTheme);
-          })
-          .catch(() => {
-            localStorage.setItem("theme", nextTheme);
-          });
-      } catch (error) {
-        setTheme(nextTheme, true);
-      }
-    };
-
-    toggles.forEach((button) => {
-      button.addEventListener("click", () => {
-        const currentTheme = root.getAttribute("data-theme") === "dark" ? "dark" : "light";
-        const nextTheme = currentTheme === "dark" ? "light" : "dark";
-        animateTransition(button, nextTheme);
-      });
-    });
-
-    if (prefersDark) {
-      const handleSystemChange = (event) => {
-        if (localStorage.getItem("theme")) return;
-        setTheme(event.matches ? "dark" : "light", false);
-      };
-
-      if (typeof prefersDark.addEventListener === "function") {
-        prefersDark.addEventListener("change", handleSystemChange);
-      } else if (typeof prefersDark.addListener === "function") {
-        prefersDark.addListener(handleSystemChange);
-      }
-    }
-  };
-
   const initScrollEffects = () => {
     const header = document.querySelector(".header");
     const scrollBtn = document.getElementById("scrollToTop");
@@ -1227,7 +1108,6 @@
   document.addEventListener("DOMContentLoaded", () => {
     createIconCloud();
     initNavigation();
-    initThemeToggle();
     initScrollEffects();
     initContactForm();
     initRevealObserver();
