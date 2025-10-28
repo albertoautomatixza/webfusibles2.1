@@ -1145,10 +1145,10 @@
     const rightNodes = [...container.querySelectorAll('[data-beam-source="core"]')];
 
     leftNodes.forEach((node, index) =>
-      createConnection(center, node, node.dataset.beamCurve || "auto", index)
+      createConnection(node, center, node.dataset.beamCurve || "auto", index)
     );
     rightNodes.forEach((node, index) =>
-      createConnection(center, node, node.dataset.beamCurve || "auto", leftNodes.length + index)
+      createConnection(node, center, node.dataset.beamCurve || "auto", leftNodes.length + index)
     );
 
     const computePath = (fromRect, toRect, curve) => {
@@ -1214,8 +1214,8 @@
         motion.setAttribute("path", d);
         motion.setAttribute("dur", `${duration.toFixed(2)}s`);
         motion.setAttribute("repeatCount", "indefinite");
-        motion.setAttribute("keyPoints", "0;1;0");
-        motion.setAttribute("keyTimes", "0;0.5;1");
+        motion.setAttribute("keyPoints", "0;1");
+        motion.setAttribute("keyTimes", "0;1");
         motion.setAttribute("calcMode", "linear");
         motion.setAttribute("begin", `${Math.max(connection.delay * 0.35, 0).toFixed(2)}s`);
         connection.dot.appendChild(motion);
