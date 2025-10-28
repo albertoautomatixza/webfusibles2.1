@@ -207,6 +207,110 @@
     new IconCloudSimple(cloud, icons, { radius: 160, speed: 1 });
   };
 
+  const initThemeToggle = () => {
+    const toggle = document.querySelector(".theme-toggle");
+    if (!toggle) return;
+
+    const STORAGE_KEY = "fp-theme";
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)");
+    const root = document.documentElement;
+    const themeMeta = document.querySelector('meta[name="theme-color"]');
+
+    const applyTheme = (theme) => {
+      const resolved = theme === "dark" ? "dark" : "light";
+      root.setAttribute("data-theme", resolved);
+      root.style.colorScheme = resolved;
+      toggle.classList.toggle("is-dark", resolved === "dark");
+      toggle.setAttribute("aria-pressed", String(resolved === "dark"));
+      toggle.setAttribute("aria-label", resolved === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro");
+      if (themeMeta) {
+        themeMeta.setAttribute("content", resolved === "dark" ? "#0f1f39" : "#197ACF");
+      }
+    };
+
+    const getStoredTheme = () => {
+      try {
+        return localStorage.getItem(STORAGE_KEY);
+      } catch (error) {
+        return null;
+      }
+    };
+
+    const storeTheme = (theme) => {
+      try {
+        localStorage.setItem(STORAGE_KEY, theme);
+      } catch (error) {
+        /* ignore */
+      }
+    };
+
+    const storedTheme = getStoredTheme();
+    const initialTheme = storedTheme || (prefersDark.matches ? "dark" : "light");
+    applyTheme(initialTheme);
+
+    const setTheme = (theme) => {
+      applyTheme(theme);
+      storeTheme(theme);
+    };
+
+    const handlePrefersChange = (event) => {
+      if (!getStoredTheme()) {
+        applyTheme(event.matches ? "dark" : "light");
+      }
+    };
+
+    if (typeof prefersDark.addEventListener === "function") {
+      prefersDark.addEventListener("change", handlePrefersChange);
+    } else if (typeof prefersDark.addListener === "function") {
+      prefersDark.addListener(handlePrefersChange);
+    }
+
+    const animateTransition = (nextTheme) => {
+      if (typeof document.startViewTransition !== "function") {
+        setTheme(nextTheme);
+        return;
+      }
+
+      const rect = toggle.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+      const maxRadius = Math.hypot(
+        Math.max(x, window.innerWidth - x),
+        Math.max(y, window.innerHeight - y)
+      );
+
+      try {
+        document
+          .startViewTransition(() => {
+            setTheme(nextTheme);
+          })
+          .ready.then(() => {
+            root.animate(
+              {
+                clipPath: [
+                  `circle(0px at ${x}px ${y}px)`,
+                  `circle(${maxRadius}px at ${x}px ${y}px)`
+                ]
+              },
+              {
+                duration: 420,
+                easing: "ease-in-out",
+                pseudoElement: "::view-transition-new(root)"
+              }
+            );
+          })
+          .catch(() => {});
+      } catch (error) {
+        setTheme(nextTheme);
+      }
+    };
+
+    toggle.addEventListener("click", () => {
+      const nextTheme = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      animateTransition(nextTheme);
+    });
+  };
+
   const initNavigation = () => {
     const navToggle = document.querySelector(".nav-toggle");
     const navMenu = document.querySelector(".nav-menu");
@@ -217,6 +321,7 @@
       const expanded = navToggle.getAttribute("aria-expanded") === "true";
       navToggle.setAttribute("aria-expanded", String(!expanded));
       navMenu.classList.toggle("active");
+      navToggle.setAttribute("aria-label", expanded ? "Abrir menú" : "Cerrar menú");
     });
 
     navMenu.querySelectorAll("a[href^='#']").forEach((link) => {
@@ -230,6 +335,7 @@
         event.preventDefault();
         navMenu.classList.remove("active");
         navToggle.setAttribute("aria-expanded", "false");
+        navToggle.setAttribute("aria-label", "Abrir menú");
 
         const header = document.querySelector(".header");
         const headerHeight = header ? header.offsetHeight : 0;
@@ -1106,6 +1212,7 @@
   };
 
   document.addEventListener("DOMContentLoaded", () => {
+    initThemeToggle();
     createIconCloud();
     initNavigation();
     initScrollEffects();
