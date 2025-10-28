@@ -163,7 +163,7 @@ html,body{max-width:100%;overflow-x:hidden}
 .theme-toggle{position:relative;width:var(--theme-toggle-size);height:var(--theme-toggle-size);display:flex;align-items:center;justify-content:center;border-radius:999px;border:1px solid var(--azul-prusia);background:var(--blanco);color:var(--azul-prusia);transition:box-shadow .3s ease,transform .3s ease,background-color .3s ease,color .3s ease}
 .theme-toggle:hover{box-shadow:0 10px 24px rgba(33,68,100,.18);transform:translateY(-1px)}
 .theme-toggle:focus-visible{outline:3px solid rgba(33,68,100,.3);outline-offset:2px}
-.theme-toggle .theme-icon{position:absolute;width:22px;height:22px;fill:currentColor;transition:opacity .3s ease,transform .3s ease;opacity:0;transform:scale(.6)}
+.theme-toggle .theme-icon{position:absolute;inset:0;margin:auto;width:22px;height:22px;fill:currentColor;transition:opacity .3s ease,transform .3s ease;opacity:0;transform:scale(.6);display:block}
 .theme-toggle .theme-icon-sun{opacity:1;transform:scale(1)}
 .theme-toggle.is-dark{background:#132742;border-color:#4b86d9;color:#E5EFF8}
 .theme-toggle.is-dark .theme-icon-sun{opacity:0;transform:scale(.4)}
