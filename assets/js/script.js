@@ -1,5 +1,9 @@
+import { loadCatalogContent, syncGoogleSheets } from './catalog-loader.js';
+
 (() => {
   "use strict";
+
+  window.syncGoogleSheets = syncGoogleSheets;
 
   const PLACEHOLDER_BACKGROUND = "#E5EFF8";
   const PLACEHOLDER_FOREGROUND = "#214464";
@@ -1326,13 +1330,14 @@
     });
   };
 
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", async () => {
     initThemeToggle();
     createIconCloud();
     initNavigation();
     initScrollEffects();
     initContactForm();
     initRevealObserver();
+    await loadCatalogContent();
     initBannerCarousel();
     initDynamicCatalog();
     initBeamConnections();

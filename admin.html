@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Sincronizar Google Sheets</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .admin-container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+      max-width: 600px;
+      width: 100%;
+    }
+
+    h1 {
+      font-size: 28px;
+      color: #1a202c;
+      margin-bottom: 12px;
+    }
+
+    .subtitle {
+      color: #718096;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    .info-box {
+      background: #f7fafc;
+      border-left: 4px solid #4299e1;
+      padding: 16px;
+      margin-bottom: 24px;
+      border-radius: 4px;
+    }
+
+    .info-box h3 {
+      color: #2d3748;
+      font-size: 16px;
+      margin-bottom: 12px;
+    }
+
+    .info-box p {
+      color: #4a5568;
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+
+    .info-box code {
+      background: #edf2f7;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: #e53e3e;
+    }
+
+    .form-group {
+      margin-bottom: 24px;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: all 0.2s;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px 24px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .status {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .status.success {
+      background: #c6f6d5;
+      color: #22543d;
+      border: 1px solid #9ae6b4;
+      display: block;
+    }
+
+    .status.error {
+      background: #fed7d7;
+      color: #742a2a;
+      border: 1px solid #fc8181;
+      display: block;
+    }
+
+    .status.loading {
+      background: #bee3f8;
+      color: #2c5282;
+      border: 1px solid #90cdf4;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(44, 82, 130, 0.2);
+      border-top-color: #2c5282;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .example {
+      background: #edf2f7;
+      padding: 12px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: #2d3748;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <h1>🔄 Sincronizar Google Sheets</h1>
+    <p class="subtitle">Conecta tu Google Sheets para actualizar el catálogo de productos automáticamente</p>
+
+    <div class="info-box">
+      <h3>📋 Estructura de Google Sheets:</h3>
+      <p><strong>Hoja 1: "Banners"</strong></p>
+      <p>• Columna A: <code>banner_url</code> (URL de imagen 1200x600px)</p>
+      <p>• Columna B: <code>titulo</code> (Título del banner)</p>
+      <br>
+      <p><strong>Hoja 2: "Productos"</strong></p>
+      <p>• Columna A: <code>categoria</code> (ej: "Componentes")</p>
+      <p>• Columna B: <code>imagen_url</code> (URL de imagen 800x520px)</p>
+      <p>• Columna C: <code>nombre</code> (Nombre del producto)</p>
+      <p>• Columna D: <code>descripcion</code> (Descripción)</p>
+    </div>
+
+    <div class="info-box">
+      <h3>🔗 Cómo obtener el ID de tu Google Sheet:</h3>
+      <p>1. Abre tu Google Sheet</p>
+      <p>2. Comparte el documento: <strong>"Cualquier persona con el enlace"</strong> → <strong>"Lector"</strong></p>
+      <p>3. Copia el ID de la URL:</p>
+      <div class="example">https://docs.google.com/spreadsheets/d/<strong>1ABcD...</strong>/edit</div>
+    </div>
+
+    <form id="syncForm">
+      <div class="form-group">
+        <label for="spreadsheetId">ID de Google Spreadsheet</label>
+        <input
+          type="text"
+          id="spreadsheetId"
+          name="spreadsheetId"
+          placeholder="1ABcDEfGhIjKlMnOpQrStUvWxYz..."
+          required
+        >
+      </div>
+
+      <button type="submit" class="btn" id="syncBtn">
+        Sincronizar ahora
+      </button>
+    </form>
+
+    <div id="status" class="status"></div>
+  </div>
+
+  <script type="module">
+    import { syncGoogleSheets } from './assets/js/catalog-loader.js';
+
+    const form = document.getElementById('syncForm');
+    const statusDiv = document.getElementById('status');
+    const syncBtn = document.getElementById('syncBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const spreadsheetId = document.getElementById('spreadsheetId').value.trim();
+
+      statusDiv.className = 'status loading';
+      statusDiv.innerHTML = '<div class="spinner"></div> Sincronizando con Google Sheets...';
+      syncBtn.disabled = true;
+
+      try {
+        const result = await syncGoogleSheets(spreadsheetId);
+
+        statusDiv.className = 'status success';
+        statusDiv.innerHTML = `
+          ✅ ¡Sincronización exitosa!<br>
+          <strong>${result.synced.banners}</strong> banners y <strong>${result.synced.productos}</strong> productos actualizados.
+        `;
+
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 2000);
+
+      } catch (error) {
+        statusDiv.className = 'status error';
+        statusDiv.innerHTML = `
+          ❌ Error al sincronizar: ${error.message}<br>
+          <small>Verifica que el Google Sheet esté compartido públicamente y que tenga las hojas "Banners" y "Productos" correctamente configuradas.</small>
+        `;
+      } finally {
+        syncBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
