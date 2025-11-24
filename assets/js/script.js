@@ -803,7 +803,9 @@
     const state = {
       items: [],
       current: 0,
-      autoplay: null
+      autoplay: null,
+      allProducts: [],
+      currentCategory: "componentes"
     };
 
     const CTA_WHATSAPP = "https://wa.me/524491964606";
@@ -815,7 +817,7 @@
         nombre: "Torretas S125D",
         descripcion:
           "Balizas LED de alta intensidad para monitoreo visual en líneas de producción industriales.",
-        categoria: "Señalización industrial",
+        categoria: "señalizacion",
         imagen: "https://placehold.co/960x640/11243d/ffffff?text=Torretas+S125D",
         cta: "Solicitar cotización",
         enlace: "https://wa.me/524491964606",
@@ -827,7 +829,7 @@
         nombre: "Gabinetes NEMA",
         descripcion:
           "Gabinetes para tableros de control con sellado IP66 listos para automatización y maniobra.",
-        categoria: "Distribución eléctrica",
+        categoria: "componentes",
         imagen: "https://placehold.co/960x640/183a5c/ffffff?text=Gabinetes+Industriales",
         cta: "Agenda una llamada",
         enlace: "tel:+524491964606",
@@ -839,13 +841,25 @@
         nombre: "Sensores de proximidad",
         descripcion:
           "Detectores inductivos y capacitivos para automatización de procesos con certificaciones internacionales.",
-        categoria: "Automatización",
+        categoria: "componentes",
         imagen: "https://placehold.co/960x640/1f4d7a/ffffff?text=Sensores+Industriales",
         cta: "Hablar por WhatsApp",
         enlace: "https://wa.me/524491964606",
         ctaSecundaria: "Solicitar demo",
         enlaceSecundario: "#contacto",
         alt: "Sensores industriales montados en riel"
+      },
+      {
+        nombre: "Multímetros digitales",
+        descripcion:
+          "Instrumentos de medición de alta precisión para diagnóstico y mantenimiento industrial.",
+        categoria: "medicion",
+        imagen: "https://placehold.co/960x640/1a3d5c/ffffff?text=Multimetros",
+        cta: "Solicitar cotización",
+        enlace: "https://wa.me/524491964606",
+        ctaSecundaria: "Ver especificaciones",
+        enlaceSecundario: "#contacto",
+        alt: "Multímetros digitales profesionales"
       }
     ];
 
@@ -1051,14 +1065,40 @@
       startAutoplay();
     };
 
+    const filterByCategory = (category) => {
+      const normalizeCategory = (cat) => {
+        if (!cat) return "";
+        return cat.toString().toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/\s+/g, "");
+      };
+
+      const normalizedCategory = normalizeCategory(category);
+
+      return state.allProducts.filter((producto) => {
+        const productCategory = normalizeCategory(producto.categoria);
+        return productCategory === normalizedCategory || productCategory.includes(normalizedCategory);
+      });
+    };
+
     const handleProductos = (productos) => {
       setLoading(false);
       if (!productos.length) {
         console.info("Se usará el catálogo de respaldo");
-        renderProductos(fallbackProducts);
-        return;
+        state.allProducts = fallbackProducts;
+      } else {
+        state.allProducts = productos;
       }
-      renderProductos(productos);
+
+      const filtered = filterByCategory(state.currentCategory);
+      renderProductos(filtered.length > 0 ? filtered : state.allProducts);
+    };
+
+    window.filterCatalogByCategory = (category) => {
+      state.currentCategory = category;
+      const filtered = filterByCategory(category);
+      renderProductos(filtered.length > 0 ? filtered : state.allProducts);
     };
 
     const cargarDesdeHoja = async () => {
@@ -1267,6 +1307,10 @@
 
         const category = tab.dataset.category;
         console.log("Categoría seleccionada:", category);
+
+        if (typeof window.filterCatalogByCategory === "function") {
+          window.filterCatalogByCategory(category);
+        }
       });
     });
   };
