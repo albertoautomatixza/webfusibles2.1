@@ -190,14 +190,29 @@
     <div class="info-box">
       <h3>📋 Estructura de Google Sheets:</h3>
       <p><strong>Hoja 1: "Banners"</strong></p>
-      <p>• Columna A: <code>banner_url</code> (URL de imagen 1200x600px)</p>
+      <p>• Columna A: <code>Imagen</code> (Inserta imagen directamente o URL - 1200x600px)</p>
       <p>• Columna B: <code>titulo</code> (Título del banner)</p>
       <br>
       <p><strong>Hoja 2: "Productos"</strong></p>
-      <p>• Columna A: <code>categoria</code> (ej: "Componentes")</p>
-      <p>• Columna B: <code>imagen_url</code> (URL de imagen 800x520px)</p>
+      <p>• Columna A: <code>categoria</code> (ej: "Componentes", "Medición", "Señalización")</p>
+      <p>• Columna B: <code>Imagen</code> (Inserta imagen directamente o URL - 800x520px)</p>
       <p>• Columna C: <code>nombre</code> (Nombre del producto)</p>
-      <p>• Columna D: <code>descripcion</code> (Descripción)</p>
+      <p>• Columna D: <code>descripcion</code> (Descripción del producto)</p>
+    </div>
+
+    <div class="info-box" style="border-left-color: #48bb78;">
+      <h3>🖼️ Cómo insertar imágenes en Google Sheets:</h3>
+      <p><strong>Opción 1: Insertar imagen directamente</strong></p>
+      <p>1. Selecciona la celda donde quieres la imagen</p>
+      <p>2. Ve a <strong>Insertar → Imagen → Imagen en celda</strong></p>
+      <p>3. Sube tu imagen desde tu computadora</p>
+      <br>
+      <p><strong>Opción 2: Usar fórmula IMAGE()</strong></p>
+      <p>En la celda escribe: <code>=IMAGE("URL_DE_TU_IMAGEN")</code></p>
+      <br>
+      <p><strong>Opción 3: Pegar URL directamente</strong></p>
+      <p>Simplemente pega la URL completa de la imagen en la celda</p>
+      <p style="margin-top: 8px; color: #22543d; font-weight: 600;">✨ Las imágenes se subirán automáticamente a tu servidor al sincronizar</p>
     </div>
 
     <div class="info-box">
