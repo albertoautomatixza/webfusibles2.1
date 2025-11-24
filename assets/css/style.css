@@ -649,3 +649,53 @@ html,body{max-width:100%;overflow-x:hidden}
     padding: calc(var(--spacing) * 1.5);
   }
 }
+
+/* Enhanced Beam Animation Styles */
+.beam-path-base {
+  fill: none;
+  stroke: rgba(122, 132, 148, 0.3) !important;
+  stroke-width: 2.5 !important;
+  stroke-linecap: round !important;
+}
+
+.beam-path-glow {
+  fill: none !important;
+  stroke: url(#beam-gradient) !important;
+  stroke-width: 6 !important;
+  stroke-linecap: round !important;
+  stroke-dasharray: var(--beam-segment, 100) var(--beam-total, 300) !important;
+  stroke-dashoffset: 0 !important;
+  filter: drop-shadow(0 0 16px rgba(25, 122, 207, 1))
+          drop-shadow(0 0 28px rgba(26, 131, 255, 0.8))
+          drop-shadow(0 0 40px rgba(96, 180, 255, 0.6)) !important;
+  opacity: 0 !important;
+  animation: beamFlow 3s cubic-bezier(0.4, 0, 0.2, 1) infinite !important;
+  animation-delay: var(--beam-delay, 0s) !important;
+}
+
+@keyframes beamFlow {
+  0% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.7;
+  }
+  20% {
+    opacity: 1;
+  }
+  50% {
+    stroke-dashoffset: var(--beam-offset-end, -200);
+    opacity: 1;
+  }
+  80% {
+    opacity: 0.7;
+  }
+  95% {
+    opacity: 0.2;
+  }
+  100% {
+    stroke-dashoffset: var(--beam-offset-end, -200);
+    opacity: 0;
+  }
+}
