@@ -190,7 +190,7 @@ import { loadCatalogContent, syncGoogleSheets } from './catalog-loader.js';
     const icons = [
       { alt: "Eaton", width: 120, height: 42, src: "assets/images/eaton.svg" },
       { alt: "Arno Canali", width: 120, height: 42, src: "assets/images/arnocanali.svg" },
-      { alt: "Klein Tools", width: 120, height: 42, src: "assets/images/klein tools.svg" },
+      { alt: "Klein Tools", width: 120, height: 42, src: "assets/images/klein-tools.svg" },
       { alt: "Weidmüller", width: 130, height: 44, src: "assets/images/weidmmuller.svg" },
       { alt: "HELUKABEL", width: 120, height: 42, src: "assets/images/hellukabel.svg" },
       { alt: "Legrand", width: 130, height: 44, src: "assets/images/legrand.svg" },
