@@ -1181,7 +1181,8 @@
 
       const pathGlow = document.createElementNS(svgNS, "path");
       pathGlow.setAttribute("class", "beam-path-glow");
-      pathGlow.style.setProperty("--beam-delay", `${delay * 0.65}s`);
+      pathGlow.style.setProperty("--beam-delay", `${delay * 0.5}s`);
+      pathGlow.style.setProperty("--beam-duration", "3s");
 
       const dot = document.createElementNS(svgNS, "circle");
       dot.setAttribute("class", "beam-path-dot");
@@ -1249,14 +1250,12 @@
         connection.pathGlow.setAttribute("d", d);
 
         const length = connection.pathGlow.getTotalLength();
-        const segment = Math.min(Math.max(length * 0.32, 48), 140);
-        const travel = Math.min(Math.max(length - segment * 0.5, segment * 0.75), length);
-        const duration = Math.min(Math.max(length / 70, 3.2), 6.2);
+        const segment = Math.min(Math.max(length * 0.4, 60), 150);
+        const travel = length + segment;
 
         connection.pathGlow.style.setProperty("--beam-total", length.toFixed(2));
         connection.pathGlow.style.setProperty("--beam-segment", segment.toFixed(2));
         connection.pathGlow.style.setProperty("--beam-offset-end", `-${travel.toFixed(2)}`);
-        connection.pathGlow.style.setProperty("--beam-duration", `${duration.toFixed(2)}s`);
 
         while (connection.dot.firstChild) {
           connection.dot.removeChild(connection.dot.firstChild);
