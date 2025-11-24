@@ -184,16 +184,16 @@
     heroVisual.appendChild(cloud);
 
     const icons = [
-      { alt: "Eaton", width: 120, height: 42, src: createSVGPlaceholder(120, 42, "Eaton") },
+      { alt: "Eaton", width: 120, height: 42, src: "assets/images/eaton.svg" },
       { alt: "Bussmann", width: 120, height: 42, src: createSVGPlaceholder(120, 42, "Bussmann") },
       { alt: "Siemens", width: 120, height: 42, src: createSVGPlaceholder(120, 42, "Siemens") },
-      { alt: "Weidmüller", width: 130, height: 44, src: createSVGPlaceholder(130, 44, "Weidmüller") },
+      { alt: "Weidmüller", width: 130, height: 44, src: "assets/images/weidmmuller.svg" },
       { alt: "HELUKABEL", width: 120, height: 42, src: "assets/images/hellukabel.svg" },
-      { alt: "Legrand", width: 130, height: 44, src: createSVGPlaceholder(130, 44, "Legrand") },
+      { alt: "Legrand", width: 130, height: 44, src: "assets/images/legrand.svg" },
       { alt: "Kyoritsu", width: 130, height: 44, src: createSVGPlaceholder(130, 44, "Kyoritsu") },
       { alt: "Gold Electric", width: 120, height: 42, src: createSVGPlaceholder(120, 42, "Gold Electric") },
       { alt: "Bauser", width: 120, height: 42, src: createSVGPlaceholder(120, 42, "Bauser") },
-      { alt: "Wiska", width: 130, height: 44, src: createSVGPlaceholder(130, 44, "Wiska") },
+      { alt: "Wiska", width: 130, height: 44, src: "assets/images/wiska.svg" },
       { alt: "Wain Electric", width: 130, height: 44, src: "assets/images/wain.svg" },
       { alt: "Taiwan Meters Plant", width: 120, height: 42, src: "assets/images/taiguan.svg" },
       { alt: "Marca eléctrica", width: 120, height: 42, src: createSVGPlaceholder(120, 42, "Marca eléctrica") },
