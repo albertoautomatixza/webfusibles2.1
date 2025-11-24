@@ -1251,6 +1251,26 @@
     window.addEventListener("resize", updatePaths);
   };
 
+  const initCatalogTabs = () => {
+    const tabs = document.querySelectorAll(".catalogo-tab");
+    if (!tabs.length) return;
+
+    tabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        tabs.forEach((t) => {
+          t.classList.remove("is-active");
+          t.setAttribute("aria-selected", "false");
+        });
+
+        tab.classList.add("is-active");
+        tab.setAttribute("aria-selected", "true");
+
+        const category = tab.dataset.category;
+        console.log("Categoría seleccionada:", category);
+      });
+    });
+  };
+
   document.addEventListener("DOMContentLoaded", () => {
     initThemeToggle();
     createIconCloud();
@@ -1261,6 +1281,7 @@
     initBannerCarousel();
     initDynamicCatalog();
     initBeamConnections();
+    initCatalogTabs();
     console.log("Sitio inicializado sin dependencias de binarios.");
   });
 })();
