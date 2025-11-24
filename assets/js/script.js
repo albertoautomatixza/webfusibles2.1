@@ -1342,6 +1342,35 @@ import { loadCatalogContent, syncGoogleSheets } from './catalog-loader.js';
     initDynamicCatalog();
     initBeamConnections();
     initCatalogTabs();
+    initCookieConsent();
     console.log("Sitio inicializado sin dependencias de binarios.");
   });
+
+  const initCookieConsent = () => {
+    const cookieConsent = document.getElementById('cookieConsent');
+    const acceptBtn = document.getElementById('cookieAccept');
+    const declineBtn = document.getElementById('cookieDecline');
+
+    if (!cookieConsent || !acceptBtn || !declineBtn) return;
+
+    const cookieChoice = localStorage.getItem('cookieConsent');
+
+    if (!cookieChoice) {
+      setTimeout(() => {
+        cookieConsent.classList.add('show');
+      }, 1000);
+    }
+
+    acceptBtn.addEventListener('click', () => {
+      localStorage.setItem('cookieConsent', 'accepted');
+      cookieConsent.classList.remove('show');
+      console.log('Cookies aceptadas');
+    });
+
+    declineBtn.addEventListener('click', () => {
+      localStorage.setItem('cookieConsent', 'declined');
+      cookieConsent.classList.remove('show');
+      console.log('Cookies rechazadas');
+    });
+  };
 })();
