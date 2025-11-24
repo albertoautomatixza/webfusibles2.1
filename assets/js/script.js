@@ -184,25 +184,22 @@
     heroVisual.appendChild(cloud);
 
     const icons = [
-      { alt: "Eaton", width: 120, height: 42 },
-      { alt: "Bussmann", width: 120, height: 42 },
-      { alt: "Siemens", width: 120, height: 42 },
-      { alt: "Weidmüller", width: 130, height: 44 },
-      { alt: "HELUKABEL", width: 120, height: 42 },
-      { alt: "Legrand", width: 130, height: 44 },
-      { alt: "Kyoritsu", width: 130, height: 44 },
-      { alt: "Gold Electric", width: 120, height: 42 },
-      { alt: "Bauser", width: 120, height: 42 },
-      { alt: "Wiska", width: 130, height: 44 },
-      { alt: "Wain Electric", width: 130, height: 44 },
-      { alt: "Taiwan Meters Plant", width: 120, height: 42 },
-      { alt: "Marca eléctrica", width: 120, height: 42 },
-      { alt: "Marca de control", width: 120, height: 42 },
-      { alt: "Instrumentación", width: 120, height: 42 }
-    ].map((icon) => ({
-      ...icon,
-      src: createSVGPlaceholder(icon.width, icon.height, icon.alt)
-    }));
+      { alt: "Eaton", width: 120, height: 42, src: createSVGPlaceholder(120, 42, "Eaton") },
+      { alt: "Bussmann", width: 120, height: 42, src: createSVGPlaceholder(120, 42, "Bussmann") },
+      { alt: "Siemens", width: 120, height: 42, src: createSVGPlaceholder(120, 42, "Siemens") },
+      { alt: "Weidmüller", width: 130, height: 44, src: createSVGPlaceholder(130, 44, "Weidmüller") },
+      { alt: "HELUKABEL", width: 120, height: 42, src: "assets/images/hellukabel.svg" },
+      { alt: "Legrand", width: 130, height: 44, src: createSVGPlaceholder(130, 44, "Legrand") },
+      { alt: "Kyoritsu", width: 130, height: 44, src: createSVGPlaceholder(130, 44, "Kyoritsu") },
+      { alt: "Gold Electric", width: 120, height: 42, src: createSVGPlaceholder(120, 42, "Gold Electric") },
+      { alt: "Bauser", width: 120, height: 42, src: createSVGPlaceholder(120, 42, "Bauser") },
+      { alt: "Wiska", width: 130, height: 44, src: createSVGPlaceholder(130, 44, "Wiska") },
+      { alt: "Wain Electric", width: 130, height: 44, src: "assets/images/wain.svg" },
+      { alt: "Taiwan Meters Plant", width: 120, height: 42, src: "assets/images/taiguan.svg" },
+      { alt: "Marca eléctrica", width: 120, height: 42, src: createSVGPlaceholder(120, 42, "Marca eléctrica") },
+      { alt: "Marca de control", width: 120, height: 42, src: createSVGPlaceholder(120, 42, "Marca de control") },
+      { alt: "Instrumentación", width: 120, height: 42, src: createSVGPlaceholder(120, 42, "Instrumentación") }
+    ];
 
     new IconCloudSimple(cloud, icons, { radius: 160, speed: 1 });
   };
