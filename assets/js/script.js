@@ -1158,10 +1158,13 @@
     const defs = document.createElementNS(svgNS, "defs");
     defs.innerHTML =
       '<linearGradient id="beam-gradient" x1="0%" y1="0%" x2="100%" y2="0%">' +
-      '<stop offset="0%" stop-color="#d9e7fb" stop-opacity="0"></stop>' +
-      '<stop offset="35%" stop-color="#1f6edc" stop-opacity="0.95"></stop>' +
-      '<stop offset="65%" stop-color="#1f6edc" stop-opacity="0.85"></stop>' +
-      '<stop offset="100%" stop-color="#d9e7fb" stop-opacity="0"></stop>' +
+      '<stop offset="0%" stop-color="#197ACF" stop-opacity="0"></stop>' +
+      '<stop offset="20%" stop-color="#197ACF" stop-opacity="0.4"></stop>' +
+      '<stop offset="40%" stop-color="#1A83FF" stop-opacity="1"></stop>' +
+      '<stop offset="50%" stop-color="#60B4FF" stop-opacity="1"></stop>' +
+      '<stop offset="60%" stop-color="#1A83FF" stop-opacity="1"></stop>' +
+      '<stop offset="80%" stop-color="#197ACF" stop-opacity="0.4"></stop>' +
+      '<stop offset="100%" stop-color="#197ACF" stop-opacity="0"></stop>' +
       '</linearGradient>';
     overlay.appendChild(defs);
 
