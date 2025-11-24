@@ -1338,8 +1338,6 @@ import { loadCatalogContent, syncGoogleSheets } from './catalog-loader.js';
     initContactForm();
     initRevealObserver();
     await loadCatalogContent();
-    initBannerCarousel();
-    initDynamicCatalog();
     initBeamConnections();
     initCatalogTabs();
     initCookieConsent();
