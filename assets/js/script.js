@@ -373,10 +373,22 @@
     form.addEventListener("submit", (event) => {
       event.preventDefault();
       const data = new FormData(form);
-      const payload = Object.fromEntries(data.entries());
-      console.log("Formulario enviado:", payload);
-      alert("Gracias por contactarnos. Nos pondremos en contacto contigo pronto.");
-      form.reset();
+      const nombre = data.get("nombre") || "";
+      const correo = data.get("correo") || "";
+      const telefono = data.get("telefono") || "";
+      const mensaje = data.get("mensaje") || "";
+
+      const subject = `Contacto de ${nombre}`;
+      const body = `Nombre: ${nombre}\nCorreo: ${correo}\nTeléfono: ${telefono}\n\nMensaje:\n${mensaje}`;
+
+      const mailtoLink = `mailto:contacto@fusiblesproteccion.com.mx?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+      window.location.href = mailtoLink;
+
+      setTimeout(() => {
+        alert("Tu cliente de correo se ha abierto. Por favor, envía el mensaje desde ahí.");
+        form.reset();
+      }, 500);
     });
   };
 
