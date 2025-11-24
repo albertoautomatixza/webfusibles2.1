@@ -196,9 +196,9 @@
       { alt: "Wiska", width: 130, height: 44, src: "assets/images/wiska.svg" },
       { alt: "Wain Electric", width: 130, height: 44, src: "assets/images/wain.svg" },
       { alt: "Taiwan Meters Plant", width: 120, height: 42, src: "assets/images/taiguan.svg" },
-      { alt: "Marca eléctrica", width: 120, height: 42, src: createSVGPlaceholder(120, 42, "Marca eléctrica") },
-      { alt: "Marca de control", width: 120, height: 42, src: createSVGPlaceholder(120, 42, "Marca de control") },
-      { alt: "Instrumentación", width: 120, height: 42, src: createSVGPlaceholder(120, 42, "Instrumentación") }
+      { alt: "Cooper", width: 120, height: 42, src: "assets/images/cooper.svg" },
+      { alt: "CNTD", width: 120, height: 42, src: "assets/images/cntd.svg" },
+      { alt: "Megger", width: 120, height: 42, src: "assets/images/megger.svg" }
     ];
 
     new IconCloudSimple(cloud, icons, { radius: 160, speed: 1 });
