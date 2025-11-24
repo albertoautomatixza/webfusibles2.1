@@ -1156,16 +1156,6 @@
     overlay.innerHTML = "";
 
     const defs = document.createElementNS(svgNS, "defs");
-    defs.innerHTML =
-      '<linearGradient id="beam-gradient" x1="0%" y1="0%" x2="100%" y2="0%">' +
-      '<stop offset="0%" stop-color="#197ACF" stop-opacity="0"></stop>' +
-      '<stop offset="20%" stop-color="#197ACF" stop-opacity="0.4"></stop>' +
-      '<stop offset="40%" stop-color="#1A83FF" stop-opacity="1"></stop>' +
-      '<stop offset="50%" stop-color="#60B4FF" stop-opacity="1"></stop>' +
-      '<stop offset="60%" stop-color="#1A83FF" stop-opacity="1"></stop>' +
-      '<stop offset="80%" stop-color="#197ACF" stop-opacity="0.4"></stop>' +
-      '<stop offset="100%" stop-color="#197ACF" stop-opacity="0"></stop>' +
-      '</linearGradient>';
     overlay.appendChild(defs);
 
     const baseGroup = document.createElementNS(svgNS, "g");
@@ -1175,23 +1165,31 @@
     overlay.append(baseGroup, glowGroup, dotGroup);
 
     const connections = [];
+    let gradientCounter = 0;
+
     const createConnection = (from, to, curve, delay) => {
+      const gradientId = `beam-gradient-${gradientCounter++}`;
+
+      const gradient = document.createElementNS(svgNS, "linearGradient");
+      gradient.setAttribute("id", gradientId);
+      gradient.setAttribute("gradientUnits", "userSpaceOnUse");
+      gradient.innerHTML =
+        '<stop offset="0%" stop-color="#ffaa40" stop-opacity="0"></stop>' +
+        '<stop offset="20%" stop-color="#ffaa40" stop-opacity="1"></stop>' +
+        '<stop offset="50%" stop-color="#9c40ff" stop-opacity="1"></stop>' +
+        '<stop offset="100%" stop-color="#9c40ff" stop-opacity="0"></stop>';
+      defs.appendChild(gradient);
+
       const pathBase = document.createElementNS(svgNS, "path");
       pathBase.setAttribute("class", "beam-path-base");
 
       const pathGlow = document.createElementNS(svgNS, "path");
       pathGlow.setAttribute("class", "beam-path-glow");
-      pathGlow.style.setProperty("--beam-delay", `${delay * 0.5}s`);
-      pathGlow.style.setProperty("--beam-duration", "3s");
-
-      const dot = document.createElementNS(svgNS, "circle");
-      dot.setAttribute("class", "beam-path-dot");
-      dot.setAttribute("r", "5");
-      dotGroup.appendChild(dot);
+      pathGlow.setAttribute("stroke", `url(#${gradientId})`);
 
       baseGroup.appendChild(pathBase);
       glowGroup.appendChild(pathGlow);
-      connections.push({ from, to, curve, pathBase, pathGlow, dot, delay });
+      connections.push({ from, to, curve, pathBase, pathGlow, gradient, gradientId, delay });
     };
 
     const leftNodes = [...container.querySelectorAll('[data-beam-target="core"]')];
@@ -1246,44 +1244,55 @@
         const fromRect = connection.from.getBoundingClientRect();
         const toRect = connection.to.getBoundingClientRect();
         const d = computePath(fromRect, toRect, connection.curve);
+
         connection.pathBase.setAttribute("d", d);
         connection.pathGlow.setAttribute("d", d);
 
-        const length = connection.pathGlow.getTotalLength();
-        const segment = Math.min(Math.max(length * 0.4, 60), 150);
-        const travel = length + segment;
+        const startX = fromRect.left - containerRect.left + fromRect.width / 2;
+        const startY = fromRect.top - containerRect.top + fromRect.height / 2;
+        const endX = toRect.left - containerRect.left + toRect.width / 2;
+        const endY = toRect.top - containerRect.top + toRect.height / 2;
 
-        connection.pathGlow.style.setProperty("--beam-total", length.toFixed(2));
-        connection.pathGlow.style.setProperty("--beam-segment", segment.toFixed(2));
-        connection.pathGlow.style.setProperty("--beam-offset-end", `-${travel.toFixed(2)}`);
+        connection.coords = { startX, startY, endX, endY };
+      });
+    };
 
-        while (connection.dot.firstChild) {
-          connection.dot.removeChild(connection.dot.firstChild);
-        }
+    const animateGradients = () => {
+      const duration = 4000;
 
-        const motion = document.createElementNS(svgNS, "animateMotion");
-        motion.setAttribute("path", d);
-        motion.setAttribute("dur", `${duration.toFixed(2)}s`);
-        motion.setAttribute("repeatCount", "indefinite");
-        motion.setAttribute("keyPoints", "0;1");
-        motion.setAttribute("keyTimes", "0;1");
-        motion.setAttribute("calcMode", "linear");
-        motion.setAttribute("begin", `${Math.max(connection.delay * 0.35, 0).toFixed(2)}s`);
-        connection.dot.appendChild(motion);
+      connections.forEach((connection, index) => {
+        const offset = index * 500;
+        const startTime = Date.now() - offset;
 
-        if (typeof motion.beginElement === "function") {
-          requestAnimationFrame(() => {
-            try {
-              motion.beginElement();
-            } catch (error) {
-              /* Ignored: animateMotion may not support beginElement in some browsers */
-            }
-          });
-        }
+        const animate = () => {
+          const elapsed = (Date.now() - startTime) % duration;
+          const progress = elapsed / duration;
+
+          const easeProgress = progress < 0.5
+            ? 2 * progress * progress
+            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+          const { startX, startY, endX, endY } = connection.coords;
+
+          const x1 = startX + (endX - startX) * Math.max(0, easeProgress - 0.1);
+          const y1 = startY + (endY - startY) * Math.max(0, easeProgress - 0.1);
+          const x2 = startX + (endX - startX) * Math.min(1, easeProgress + 0.1);
+          const y2 = startY + (endY - startY) * Math.min(1, easeProgress + 0.1);
+
+          connection.gradient.setAttribute("x1", x1);
+          connection.gradient.setAttribute("y1", y1);
+          connection.gradient.setAttribute("x2", x2);
+          connection.gradient.setAttribute("y2", y2);
+
+          requestAnimationFrame(animate);
+        };
+
+        animate();
       });
     };
 
     updatePaths();
+    animateGradients();
 
     if ("ResizeObserver" in window) {
       const resizeObserver = new ResizeObserver(() => requestAnimationFrame(updatePaths));
