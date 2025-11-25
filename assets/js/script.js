@@ -1,19 +1,4 @@
 import { loadCatalogContent, syncGoogleSheets } from './catalog-loader.js';
-import eatonLogo from '../images/eaton.svg';
-import arnocanalLogo from '../images/arnocanali.svg';
-import kleinToolsLogo from '../images/klein-tools.svg';
-import weidmullerLogo from '../images/weidmmuller.svg';
-import hellukabelLogo from '../images/hellukabel.svg';
-import legrandLogo from '../images/legrand.svg';
-import kyoritsuLogo from '../images/kyoritsu.svg';
-import reerLogo from '../images/reer.svg';
-import sirenaLogo from '../images/sirena.svg';
-import wiskaLogo from '../images/wiska.svg';
-import wainLogo from '../images/wain.svg';
-import taiguanLogo from '../images/taiguan.svg';
-import cooperLogo from '../images/cooper.svg';
-import cntdLogo from '../images/cntd.svg';
-import meggerLogo from '../images/megger.svg';
 
 (() => {
   "use strict";
@@ -203,21 +188,21 @@ import meggerLogo from '../images/megger.svg';
     heroVisual.appendChild(cloud);
 
     const icons = [
-      { alt: "Eaton", width: 120, height: 42, src: eatonLogo },
-      { alt: "Arno Canali", width: 120, height: 42, src: arnocanalLogo },
-      { alt: "Klein Tools", width: 120, height: 42, src: kleinToolsLogo },
-      { alt: "Weidmüller", width: 130, height: 44, src: weidmullerLogo },
-      { alt: "HELUKABEL", width: 120, height: 42, src: hellukabelLogo },
-      { alt: "Legrand", width: 130, height: 44, src: legrandLogo },
-      { alt: "Kyoritsu", width: 130, height: 44, src: kyoritsuLogo },
-      { alt: "REER", width: 120, height: 42, src: reerLogo },
-      { alt: "Sirena", width: 120, height: 42, src: sirenaLogo },
-      { alt: "Wiska", width: 130, height: 44, src: wiskaLogo },
-      { alt: "Wain Electric", width: 130, height: 44, src: wainLogo },
-      { alt: "Taiwan Meters Plant", width: 120, height: 42, src: taiguanLogo },
-      { alt: "Cooper", width: 120, height: 42, src: cooperLogo },
-      { alt: "CNTD", width: 120, height: 42, src: cntdLogo },
-      { alt: "Megger", width: 120, height: 42, src: meggerLogo }
+      { alt: "Eaton", width: 120, height: 42, src: "/logos/eaton.svg" },
+      { alt: "Arno Canali", width: 120, height: 42, src: "/logos/arnocanali.svg" },
+      { alt: "Klein Tools", width: 120, height: 42, src: "/logos/klein-tools.svg" },
+      { alt: "Weidmüller", width: 130, height: 44, src: "/logos/weidmmuller.svg" },
+      { alt: "HELUKABEL", width: 120, height: 42, src: "/logos/hellukabel.svg" },
+      { alt: "Legrand", width: 130, height: 44, src: "/logos/legrand.svg" },
+      { alt: "Kyoritsu", width: 130, height: 44, src: "/logos/kyoritsu.svg" },
+      { alt: "REER", width: 120, height: 42, src: "/logos/reer.svg" },
+      { alt: "Sirena", width: 120, height: 42, src: "/logos/sirena.svg" },
+      { alt: "Wiska", width: 130, height: 44, src: "/logos/wiska.svg" },
+      { alt: "Wain Electric", width: 130, height: 44, src: "/logos/wain.svg" },
+      { alt: "Taiwan Meters Plant", width: 120, height: 42, src: "/logos/taiguan.svg" },
+      { alt: "Cooper", width: 120, height: 42, src: "/logos/cooper.svg" },
+      { alt: "CNTD", width: 120, height: 42, src: "/logos/cntd.svg" },
+      { alt: "Megger", width: 120, height: 42, src: "/logos/megger.svg" }
     ];
 
     new IconCloudSimple(cloud, icons, { radius: 160, speed: 1 });
