@@ -978,6 +978,11 @@ import { loadCatalogContent, syncGoogleSheets } from './catalog-loader.js';
       slide.setAttribute("role", "tabpanel");
       slide.setAttribute("aria-hidden", "true");
 
+      const title = document.createElement("h3");
+      title.className = "catalogo-title";
+      title.textContent = nombre;
+      slide.appendChild(title);
+
       const media = document.createElement("div");
       media.className = "catalogo-media";
 
@@ -992,25 +997,12 @@ import { loadCatalogContent, syncGoogleSheets } from './catalog-loader.js';
       media.appendChild(img);
       slide.appendChild(media);
 
-      const info = document.createElement("div");
-      info.className = "catalogo-info";
-
-      const pill = document.createElement("span");
-      pill.className = "catalogo-pill";
-      pill.textContent = producto.categoria || "Catálogo en línea";
-      info.appendChild(pill);
-
-      const title = document.createElement("h3");
-      title.className = "catalogo-title";
-      title.textContent = nombre;
-      info.appendChild(title);
-
       const desc = document.createElement("p");
       desc.className = "catalogo-description";
       desc.textContent =
         producto.descripcion ||
         "Ofrecemos sensores, protecciones y tableros certificados con disponibilidad inmediata y soporte especializado para tus proyectos.";
-      info.appendChild(desc);
+      slide.appendChild(desc);
 
       const ctaGroup = document.createElement("div");
       ctaGroup.className = "catalogo-cta-group";
@@ -1033,8 +1025,7 @@ import { loadCatalogContent, syncGoogleSheets } from './catalog-loader.js';
         ctaGroup.appendChild(secondaryCta);
       }
 
-      info.appendChild(ctaGroup);
-      slide.appendChild(info);
+      slide.appendChild(ctaGroup);
 
       return slide;
     };
