@@ -824,8 +824,3 @@ html,body{max-width:100%;overflow-x:hidden}
   filter: drop-shadow(0 0 6px rgba(255, 170, 64, 0.8))
           drop-shadow(0 0 12px rgba(156, 64, 255, 0.6));
 }
-
-/* Ocultar marcas desde la segunda fila en adelante */
-.marcas-grid .marca-item:nth-child(n+5) {
-  display: none;
-}
