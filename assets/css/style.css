@@ -498,6 +498,10 @@ html,body{max-width:100%;overflow-x:hidden}
   box-shadow: 0 20px 60px rgba(4, 12, 24, 0.5);
 }
 
+[data-theme="dark"] .marca-logo-img {
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.5)) drop-shadow(0 0 14px rgba(255,255,255,0.25));
+}
+
 [data-theme="dark"] .contacto {
   background: linear-gradient(180deg, #0f1f39 0%, #142a48 100%);
 }
