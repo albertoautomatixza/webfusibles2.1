@@ -290,7 +290,7 @@ html,body{max-width:100%;overflow-x:hidden}
   content: '';
   position: absolute;
   top: 50%;
-  left: 65%;
+  left: 60%;
   transform: translate(-50%, -50%);
   width: 420px;
   height: 420px;
@@ -302,6 +302,10 @@ html,body{max-width:100%;overflow-x:hidden}
 
 [data-theme="dark"] .icon-cloud-container {
   z-index: 1;
+}
+
+[data-theme="dark"] .icon-cloud-item img {
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.5)) drop-shadow(0 0 14px rgba(255,255,255,0.25));
 }
 
 [data-theme="dark"] .hero-badge {
