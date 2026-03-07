@@ -1138,169 +1138,76 @@ import { loadCatalogContent, syncGoogleSheets } from './catalog-loader.js';
   };
 
   const initBeamConnections = () => {
-    const container = document.querySelector(".caracteristicas-conexion");
-    if (!container) return;
+    const wrapper = document.querySelector(".hub-spoke");
+    if (!wrapper) return;
 
-    const layout = container.querySelector(".beam-layout");
-    const overlay = container.querySelector(".beam-overlay");
-    const center = container.querySelector("[data-beam-center]");
+    const svg = wrapper.querySelector(".hub-spoke-lines");
+    const hub = wrapper.querySelector("[data-hub]");
+    const spokes = [...wrapper.querySelectorAll("[data-spoke]")];
 
-    if (!layout || !overlay || !center) return;
+    if (!svg || !hub || !spokes.length) return;
 
     const svgNS = "http://www.w3.org/2000/svg";
-    overlay.innerHTML = "";
+    svg.innerHTML = "";
 
     const defs = document.createElementNS(svgNS, "defs");
-    overlay.appendChild(defs);
+    const grad = document.createElementNS(svgNS, "linearGradient");
+    grad.setAttribute("id", "hub-line-grad");
+    grad.setAttribute("gradientUnits", "userSpaceOnUse");
+    grad.innerHTML =
+      '<stop offset="0%" stop-color="#197ACF" stop-opacity="0.6"/>' +
+      '<stop offset="50%" stop-color="#4db8ff" stop-opacity="0.9"/>' +
+      '<stop offset="100%" stop-color="#197ACF" stop-opacity="0.6"/>';
+    defs.appendChild(grad);
+    svg.appendChild(defs);
 
-    const baseGroup = document.createElementNS(svgNS, "g");
-    const glowGroup = document.createElementNS(svgNS, "g");
-    const dotGroup = document.createElementNS(svgNS, "g");
-    dotGroup.setAttribute("class", "beam-dots");
-    overlay.append(baseGroup, glowGroup, dotGroup);
+    const lines = [];
+    const hubCircle = hub.querySelector(".hub-icon-circle") || hub;
 
-    const connections = [];
-    let gradientCounter = 0;
+    spokes.forEach((spoke, i) => {
+      const spokeCircle = spoke.querySelector(".spoke-icon-circle") || spoke;
 
-    const createConnection = (from, to, curve, delay) => {
-      const gradientId = `beam-gradient-${gradientCounter++}`;
+      const baseLine = document.createElementNS(svgNS, "line");
+      baseLine.setAttribute("class", "hub-spoke-line");
 
-      const gradient = document.createElementNS(svgNS, "linearGradient");
-      gradient.setAttribute("id", gradientId);
-      gradient.setAttribute("gradientUnits", "userSpaceOnUse");
-      gradient.innerHTML =
-        '<stop offset="0%" stop-color="#197ACF" stop-opacity="0"></stop>' +
-        '<stop offset="25%" stop-color="#4db8ff" stop-opacity="1"></stop>' +
-        '<stop offset="50%" stop-color="#197ACF" stop-opacity="1"></stop>' +
-        '<stop offset="75%" stop-color="#4db8ff" stop-opacity="1"></stop>' +
-        '<stop offset="100%" stop-color="#197ACF" stop-opacity="0"></stop>';
-      defs.appendChild(gradient);
+      const glowLine = document.createElementNS(svgNS, "line");
+      glowLine.setAttribute("class", "hub-spoke-line-glow");
+      glowLine.style.setProperty("--line-delay", `${i * 0.75}s`);
 
-      const pathBase = document.createElementNS(svgNS, "path");
-      pathBase.setAttribute("class", "beam-path-base");
+      svg.appendChild(baseLine);
+      svg.appendChild(glowLine);
 
-      const pathGlow = document.createElementNS(svgNS, "path");
-      pathGlow.setAttribute("class", "beam-path-glow");
-      pathGlow.setAttribute("stroke", `url(#${gradientId})`);
-
-      baseGroup.appendChild(pathBase);
-      glowGroup.appendChild(pathGlow);
-      connections.push({ from, to, curve, pathBase, pathGlow, gradient, gradientId, delay });
-    };
-
-    const leftNodes = [...container.querySelectorAll('[data-beam-target="core"]')];
-    const rightNodes = [...container.querySelectorAll('[data-beam-source="core"]')];
-    const centerCircle = center.querySelector(".caracteristica-icon-circle") || center;
-
-    leftNodes.forEach((node, index) => {
-      const circle = node.querySelector(".caracteristica-icon-circle") || node;
-      createConnection(circle, centerCircle, node.dataset.beamCurve || "auto", index);
-    });
-    rightNodes.forEach((node, index) => {
-      const circle = node.querySelector(".caracteristica-icon-circle") || node;
-      createConnection(circle, centerCircle, node.dataset.beamCurve || "auto", leftNodes.length + index);
+      lines.push({ spokeCircle, baseLine, glowLine });
     });
 
-    const computePath = (fromRect, toRect, curve) => {
-      const containerRect = container.getBoundingClientRect();
-      const x1 = fromRect.left + fromRect.width / 2 - containerRect.left;
-      const y1 = fromRect.top + fromRect.height / 2 - containerRect.top;
-      const x2 = toRect.left + toRect.width / 2 - containerRect.left;
-      const y2 = toRect.top + toRect.height / 2 - containerRect.top;
+    const update = () => {
+      const wrapperRect = wrapper.getBoundingClientRect();
+      svg.setAttribute("viewBox", `0 0 ${wrapperRect.width} ${wrapperRect.height}`);
 
-      const deltaX = x2 - x1;
-      const deltaY = y2 - y1;
-      const distance = Math.hypot(deltaX, deltaY);
+      const hubRect = hubCircle.getBoundingClientRect();
+      const cx = hubRect.left + hubRect.width / 2 - wrapperRect.left;
+      const cy = hubRect.top + hubRect.height / 2 - wrapperRect.top;
 
-      let direction = 0;
-      if (curve === "up") direction = -1;
-      else if (curve === "down") direction = 1;
-      else if (curve === "mid") direction = 0;
-      else direction = deltaY >= 0 ? 1 : -1;
+      lines.forEach(({ spokeCircle, baseLine, glowLine }) => {
+        const r = spokeCircle.getBoundingClientRect();
+        const sx = r.left + r.width / 2 - wrapperRect.left;
+        const sy = r.top + r.height / 2 - wrapperRect.top;
 
-      let offset = Math.min(Math.abs(deltaX) * 0.28 + distance * 0.08, 160);
-      if (direction === 0) {
-        const fallback = deltaY === 0 ? (deltaX > 0 ? -1 : 1) : Math.sign(deltaY);
-        offset = fallback * Math.min(Math.abs(deltaX) * 0.18 + 48, 120);
-      } else {
-        offset *= direction;
-      }
-
-      const cp1x = x1 + deltaX * 0.35;
-      const cp1y = y1 + offset;
-      const cp2x = x2 - deltaX * 0.35;
-      const cp2y = y2 + offset * 0.7;
-      return `M${x1},${y1} C${cp1x},${cp1y} ${cp2x},${cp2y} ${x2},${y2}`;
-    };
-
-    const updatePaths = () => {
-      const containerRect = container.getBoundingClientRect();
-      overlay.setAttribute("viewBox", `0 0 ${containerRect.width} ${containerRect.height}`);
-      overlay.setAttribute("width", containerRect.width);
-      overlay.setAttribute("height", containerRect.height);
-
-      connections.forEach((connection) => {
-        const fromRect = connection.from.getBoundingClientRect();
-        const toRect = connection.to.getBoundingClientRect();
-        const d = computePath(fromRect, toRect, connection.curve);
-
-        connection.pathBase.setAttribute("d", d);
-        connection.pathGlow.setAttribute("d", d);
-
-        const startX = fromRect.left - containerRect.left + fromRect.width / 2;
-        const startY = fromRect.top - containerRect.top + fromRect.height / 2;
-        const endX = toRect.left - containerRect.left + toRect.width / 2;
-        const endY = toRect.top - containerRect.top + toRect.height / 2;
-
-        connection.coords = { startX, startY, endX, endY };
+        [baseLine, glowLine].forEach((l) => {
+          l.setAttribute("x1", sx);
+          l.setAttribute("y1", sy);
+          l.setAttribute("x2", cx);
+          l.setAttribute("y2", cy);
+        });
       });
     };
 
-    const animateGradients = () => {
-      const duration = 5000;
-
-      connections.forEach((connection, index) => {
-        const offset = index * 600;
-        const startTime = Date.now() - offset;
-
-        const animate = () => {
-          const elapsed = (Date.now() - startTime) % (duration * 2);
-          const halfProgress = elapsed / duration;
-          const pingPong = halfProgress <= 1 ? halfProgress : 2 - halfProgress;
-
-          const easeProgress = pingPong < 0.5
-            ? 2 * pingPong * pingPong
-            : 1 - Math.pow(-2 * pingPong + 2, 2) / 2;
-
-          const { startX, startY, endX, endY } = connection.coords;
-
-          const spread = 0.15;
-          const x1 = startX + (endX - startX) * Math.max(0, easeProgress - spread);
-          const y1 = startY + (endY - startY) * Math.max(0, easeProgress - spread);
-          const x2 = startX + (endX - startX) * Math.min(1, easeProgress + spread);
-          const y2 = startY + (endY - startY) * Math.min(1, easeProgress + spread);
-
-          connection.gradient.setAttribute("x1", x1);
-          connection.gradient.setAttribute("y1", y1);
-          connection.gradient.setAttribute("x2", x2);
-          connection.gradient.setAttribute("y2", y2);
-
-          requestAnimationFrame(animate);
-        };
-
-        animate();
-      });
-    };
-
-    updatePaths();
-    animateGradients();
+    update();
 
     if ("ResizeObserver" in window) {
-      const resizeObserver = new ResizeObserver(() => requestAnimationFrame(updatePaths));
-      resizeObserver.observe(container);
+      new ResizeObserver(() => requestAnimationFrame(update)).observe(wrapper);
     }
-
-    window.addEventListener("resize", updatePaths);
+    window.addEventListener("resize", update);
   };
 
   const initCatalogTabs = () => {
