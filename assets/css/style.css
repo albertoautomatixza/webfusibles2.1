@@ -286,6 +286,11 @@ html,body{max-width:100%;overflow-x:hidden}
   box-shadow: 0 28px 70px rgba(4, 12, 24, 0.55);
 }
 
+[data-theme="dark"] .icon-cloud-container {
+  background: radial-gradient(ellipse at center, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 50%, transparent 75%);
+  border-radius: 50%;
+}
+
 [data-theme="dark"] .hero-badge {
   background: rgba(229, 239, 248, 0.08);
   color: #9FC1FF;
