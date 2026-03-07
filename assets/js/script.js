@@ -1161,24 +1161,30 @@ import { loadCatalogContent, syncGoogleSheets } from './catalog-loader.js';
     defs.appendChild(grad);
     svg.appendChild(defs);
 
-    const lines = [];
+    const paths = [];
     const hubCircle = hub.querySelector(".hub-icon-circle") || hub;
 
     spokes.forEach((spoke, i) => {
       const spokeCircle = spoke.querySelector(".spoke-icon-circle") || spoke;
 
-      const baseLine = document.createElementNS(svgNS, "line");
-      baseLine.setAttribute("class", "hub-spoke-line");
+      const basePath = document.createElementNS(svgNS, "path");
+      basePath.setAttribute("class", "hub-spoke-line");
 
-      const glowLine = document.createElementNS(svgNS, "line");
-      glowLine.setAttribute("class", "hub-spoke-line-glow");
-      glowLine.style.setProperty("--line-delay", `${i * 0.75}s`);
+      const glowPath = document.createElementNS(svgNS, "path");
+      glowPath.setAttribute("class", "hub-spoke-line-glow");
+      glowPath.style.setProperty("--line-delay", `${i * 0.75}s`);
 
-      svg.appendChild(baseLine);
-      svg.appendChild(glowLine);
+      svg.appendChild(basePath);
+      svg.appendChild(glowPath);
 
-      lines.push({ spokeCircle, baseLine, glowLine });
+      paths.push({ spokeCircle, basePath, glowPath });
     });
+
+    const buildPath = (sx, sy, cx, cy) => {
+      const dx = cx - sx;
+      const midX = sx + dx * 0.25;
+      return `M${sx},${sy} L${midX},${sy} L${cx},${cy}`;
+    };
 
     const update = () => {
       const wrapperRect = wrapper.getBoundingClientRect();
@@ -1188,17 +1194,14 @@ import { loadCatalogContent, syncGoogleSheets } from './catalog-loader.js';
       const cx = hubRect.left + hubRect.width / 2 - wrapperRect.left;
       const cy = hubRect.top + hubRect.height / 2 - wrapperRect.top;
 
-      lines.forEach(({ spokeCircle, baseLine, glowLine }) => {
+      paths.forEach(({ spokeCircle, basePath, glowPath }) => {
         const r = spokeCircle.getBoundingClientRect();
         const sx = r.left + r.width / 2 - wrapperRect.left;
         const sy = r.top + r.height / 2 - wrapperRect.top;
+        const d = buildPath(sx, sy, cx, cy);
 
-        [baseLine, glowLine].forEach((l) => {
-          l.setAttribute("x1", sx);
-          l.setAttribute("y1", sy);
-          l.setAttribute("x2", cx);
-          l.setAttribute("y2", cy);
-        });
+        basePath.setAttribute("d", d);
+        glowPath.setAttribute("d", d);
       });
     };
 
