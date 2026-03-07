@@ -1190,13 +1190,16 @@ import { loadCatalogContent, syncGoogleSheets } from './catalog-loader.js';
 
     const leftNodes = [...container.querySelectorAll('[data-beam-target="core"]')];
     const rightNodes = [...container.querySelectorAll('[data-beam-source="core"]')];
+    const centerCircle = center.querySelector(".caracteristica-icon-circle") || center;
 
-    leftNodes.forEach((node, index) =>
-      createConnection(node, center, node.dataset.beamCurve || "auto", index)
-    );
-    rightNodes.forEach((node, index) =>
-      createConnection(node, center, node.dataset.beamCurve || "auto", leftNodes.length + index)
-    );
+    leftNodes.forEach((node, index) => {
+      const circle = node.querySelector(".caracteristica-icon-circle") || node;
+      createConnection(circle, centerCircle, node.dataset.beamCurve || "auto", index);
+    });
+    rightNodes.forEach((node, index) => {
+      const circle = node.querySelector(".caracteristica-icon-circle") || node;
+      createConnection(circle, centerCircle, node.dataset.beamCurve || "auto", leftNodes.length + index);
+    });
 
     const computePath = (fromRect, toRect, curve) => {
       const containerRect = container.getBoundingClientRect();
@@ -1331,8 +1334,8 @@ import { loadCatalogContent, syncGoogleSheets } from './catalog-loader.js';
     initScrollEffects();
     initContactForm();
     initRevealObserver();
-    await loadCatalogContent();
     initBeamConnections();
+    await loadCatalogContent();
     initCatalogTabs();
     initCookieConsent();
     console.log("Sitio inicializado sin dependencias de binarios.");
