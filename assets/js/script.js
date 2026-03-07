@@ -1169,10 +1169,11 @@ import { loadCatalogContent, syncGoogleSheets } from './catalog-loader.js';
       gradient.setAttribute("id", gradientId);
       gradient.setAttribute("gradientUnits", "userSpaceOnUse");
       gradient.innerHTML =
-        '<stop offset="0%" stop-color="#ffaa40" stop-opacity="0"></stop>' +
-        '<stop offset="20%" stop-color="#ffaa40" stop-opacity="1"></stop>' +
-        '<stop offset="50%" stop-color="#9c40ff" stop-opacity="1"></stop>' +
-        '<stop offset="100%" stop-color="#9c40ff" stop-opacity="0"></stop>';
+        '<stop offset="0%" stop-color="#197ACF" stop-opacity="0"></stop>' +
+        '<stop offset="25%" stop-color="#4db8ff" stop-opacity="1"></stop>' +
+        '<stop offset="50%" stop-color="#197ACF" stop-opacity="1"></stop>' +
+        '<stop offset="75%" stop-color="#4db8ff" stop-opacity="1"></stop>' +
+        '<stop offset="100%" stop-color="#197ACF" stop-opacity="0"></stop>';
       defs.appendChild(gradient);
 
       const pathBase = document.createElementNS(svgNS, "path");
@@ -1253,26 +1254,28 @@ import { loadCatalogContent, syncGoogleSheets } from './catalog-loader.js';
     };
 
     const animateGradients = () => {
-      const duration = 4000;
+      const duration = 5000;
 
       connections.forEach((connection, index) => {
-        const offset = index * 500;
+        const offset = index * 600;
         const startTime = Date.now() - offset;
 
         const animate = () => {
-          const elapsed = (Date.now() - startTime) % duration;
-          const progress = elapsed / duration;
+          const elapsed = (Date.now() - startTime) % (duration * 2);
+          const halfProgress = elapsed / duration;
+          const pingPong = halfProgress <= 1 ? halfProgress : 2 - halfProgress;
 
-          const easeProgress = progress < 0.5
-            ? 2 * progress * progress
-            : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+          const easeProgress = pingPong < 0.5
+            ? 2 * pingPong * pingPong
+            : 1 - Math.pow(-2 * pingPong + 2, 2) / 2;
 
           const { startX, startY, endX, endY } = connection.coords;
 
-          const x1 = startX + (endX - startX) * Math.max(0, easeProgress - 0.1);
-          const y1 = startY + (endY - startY) * Math.max(0, easeProgress - 0.1);
-          const x2 = startX + (endX - startX) * Math.min(1, easeProgress + 0.1);
-          const y2 = startY + (endY - startY) * Math.min(1, easeProgress + 0.1);
+          const spread = 0.15;
+          const x1 = startX + (endX - startX) * Math.max(0, easeProgress - spread);
+          const y1 = startY + (endY - startY) * Math.max(0, easeProgress - spread);
+          const x2 = startX + (endX - startX) * Math.min(1, easeProgress + spread);
+          const y2 = startY + (endY - startY) * Math.min(1, easeProgress + spread);
 
           connection.gradient.setAttribute("x1", x1);
           connection.gradient.setAttribute("y1", y1);
