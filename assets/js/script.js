@@ -1138,7 +1138,7 @@ import { loadCatalogContent, syncGoogleSheets } from './catalog-loader.js';
   };
 
   const initBeamConnections = () => {
-    const wrapper = document.querySelector(".hub-spoke");
+    const wrapper = document.querySelector("[data-hub-spoke]");
     if (!wrapper) return;
 
     const svg = wrapper.querySelector(".hub-spoke-lines");
@@ -1151,61 +1151,99 @@ import { loadCatalogContent, syncGoogleSheets } from './catalog-loader.js';
     svg.innerHTML = "";
 
     const defs = document.createElementNS(svgNS, "defs");
-    const grad = document.createElementNS(svgNS, "linearGradient");
-    grad.setAttribute("id", "hub-line-grad");
-    grad.setAttribute("gradientUnits", "userSpaceOnUse");
-    grad.innerHTML =
-      '<stop offset="0%" stop-color="#197ACF" stop-opacity="0.6"/>' +
-      '<stop offset="50%" stop-color="#4db8ff" stop-opacity="0.9"/>' +
-      '<stop offset="100%" stop-color="#197ACF" stop-opacity="0.6"/>';
-    defs.appendChild(grad);
     svg.appendChild(defs);
 
-    const paths = [];
+    const beams = [];
     const hubCircle = hub.querySelector(".hub-icon-circle") || hub;
 
     spokes.forEach((spoke, i) => {
       const spokeCircle = spoke.querySelector(".spoke-icon-circle") || spoke;
+      const uid = "beam-grad-" + i;
+
+      const grad = document.createElementNS(svgNS, "linearGradient");
+      grad.setAttribute("id", uid);
+      grad.setAttribute("gradientUnits", "userSpaceOnUse");
+      grad.innerHTML =
+        '<stop offset="0%" stop-color="#197ACF" stop-opacity="0"/>' +
+        '<stop offset="30%" stop-color="#197ACF" stop-opacity="1"/>' +
+        '<stop offset="65%" stop-color="#4db8ff" stop-opacity="1"/>' +
+        '<stop offset="100%" stop-color="#4db8ff" stop-opacity="0"/>';
+      defs.appendChild(grad);
 
       const basePath = document.createElementNS(svgNS, "path");
-      basePath.setAttribute("class", "hub-spoke-line");
+      basePath.setAttribute("class", "hub-spoke-line-base");
 
-      const glowPath = document.createElementNS(svgNS, "path");
-      glowPath.setAttribute("class", "hub-spoke-line-glow");
-      glowPath.style.setProperty("--line-delay", `${i * 0.75}s`);
+      const beamPath = document.createElementNS(svgNS, "path");
+      beamPath.setAttribute("class", "hub-spoke-line-beam");
+      beamPath.setAttribute("stroke", `url(#${uid})`);
 
       svg.appendChild(basePath);
-      svg.appendChild(glowPath);
+      svg.appendChild(beamPath);
 
-      paths.push({ spokeCircle, basePath, glowPath });
+      beams.push({ spokeCircle, basePath, beamPath, grad, delay: i * 1.2, duration: 4 });
     });
 
-    const buildPath = (sx, sy, cx, cy) => {
-      const dx = cx - sx;
-      const midX = sx + dx * 0.25;
-      return `M${sx},${sy} L${midX},${sy} L${cx},${cy}`;
+    const getCenter = (el) => {
+      const wr = wrapper.getBoundingClientRect();
+      const r = el.getBoundingClientRect();
+      return {
+        x: r.left + r.width / 2 - wr.left,
+        y: r.top + r.height / 2 - wr.top,
+      };
+    };
+
+    const buildCurvePath = (sx, sy, ex, ey) => {
+      const controlY = sy - (sy - ey) * 0.5;
+      return `M ${sx},${sy} Q ${(sx + ex) / 2},${controlY} ${ex},${ey}`;
     };
 
     const update = () => {
-      const wrapperRect = wrapper.getBoundingClientRect();
-      svg.setAttribute("viewBox", `0 0 ${wrapperRect.width} ${wrapperRect.height}`);
+      const wr = wrapper.getBoundingClientRect();
+      svg.setAttribute("viewBox", `0 0 ${wr.width} ${wr.height}`);
 
-      const hubRect = hubCircle.getBoundingClientRect();
-      const cx = hubRect.left + hubRect.width / 2 - wrapperRect.left;
-      const cy = hubRect.top + hubRect.height / 2 - wrapperRect.top;
+      const hc = getCenter(hubCircle);
 
-      paths.forEach(({ spokeCircle, basePath, glowPath }) => {
-        const r = spokeCircle.getBoundingClientRect();
-        const sx = r.left + r.width / 2 - wrapperRect.left;
-        const sy = r.top + r.height / 2 - wrapperRect.top;
-        const d = buildPath(sx, sy, cx, cy);
-
+      beams.forEach(({ spokeCircle, basePath, beamPath }) => {
+        const sc = getCenter(spokeCircle);
+        const d = buildCurvePath(sc.x, sc.y, hc.x, hc.y);
         basePath.setAttribute("d", d);
-        glowPath.setAttribute("d", d);
+        beamPath.setAttribute("d", d);
       });
     };
 
+    let animFrame;
+    const startTime = performance.now();
+
+    const animateBeams = (now) => {
+      const elapsed = (now - startTime) / 1000;
+
+      beams.forEach(({ beamPath, grad, delay, duration }) => {
+        const t = ((elapsed - delay) % duration) / duration;
+        const progress = t < 0 ? 0 : t;
+
+        const pathLen = beamPath.getTotalLength ? beamPath.getTotalLength() : 400;
+        const beamLen = pathLen * 0.35;
+        const beamCenter = progress * (pathLen + beamLen) - beamLen * 0.5;
+
+        const p1 = beamCenter - beamLen / 2;
+        const p2 = beamCenter + beamLen / 2;
+
+        grad.setAttribute("gradientUnits", "userSpaceOnUse");
+
+        const startPt = beamPath.getPointAtLength ? beamPath.getPointAtLength(Math.max(0, Math.min(p1, pathLen))) : { x: 0, y: 0 };
+        const endPt = beamPath.getPointAtLength ? beamPath.getPointAtLength(Math.max(0, Math.min(p2, pathLen))) : { x: 100, y: 0 };
+
+        grad.setAttribute("x1", startPt.x);
+        grad.setAttribute("y1", startPt.y);
+        grad.setAttribute("x2", endPt.x);
+        grad.setAttribute("y2", endPt.y);
+      });
+
+      animFrame = requestAnimationFrame(animateBeams);
+    };
+
     update();
+    animFrame = requestAnimationFrame(animateBeams);
 
     if ("ResizeObserver" in window) {
       new ResizeObserver(() => requestAnimationFrame(update)).observe(wrapper);
