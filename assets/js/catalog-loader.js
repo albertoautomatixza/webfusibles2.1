@@ -1,4 +1,5 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+import { fetchBanners, getPlaceholderImage } from './banner-sheet.js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -6,68 +7,120 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function loadCatalogContent() {
   try {
-    const apiUrl = `${supabaseUrl}/functions/v1/api-catalogo`;
+    const [bannerResult, catalogResult] = await Promise.allSettled([
+      loadBannersFromSheet(),
+      loadProductosFromApi()
+    ]);
 
-    const response = await fetch(apiUrl, {
-      headers: {
-        'Authorization': `Bearer ${supabaseKey}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch catalog data');
+    if (bannerResult.status === 'rejected') {
+      console.warn('Banner loading failed, hiding section:', bannerResult.reason);
+      hideBannerSection();
     }
 
-    const { banners, productos } = await response.json();
-
-    loadBanners(banners);
-    loadProductos(productos);
-
+    if (catalogResult.status === 'rejected') {
+      console.warn('Catalog loading failed:', catalogResult.reason);
+    }
   } catch (error) {
     console.error('Error loading catalog content:', error);
   }
 }
 
-function loadBanners(banners) {
+async function loadBannersFromSheet() {
   const stage = document.getElementById('bannerStage');
   const dotsContainer = document.getElementById('bannerDots');
   const slider = document.querySelector('.banner-slider');
 
-  if (!stage || !dotsContainer || !slider) {
-    console.warn('Banner elements not found');
-    return;
-  }
+  if (!stage || !dotsContainer || !slider) return;
 
-  if (!banners || banners.length === 0) {
-    console.warn('No banners found');
+  try {
+    const banners = await fetchBanners();
+
+    if (!banners || banners.length === 0) {
+      hideBannerSection();
+      return;
+    }
+
+    stage.innerHTML = '';
+    dotsContainer.innerHTML = '';
+
+    banners.forEach((banner, index) => {
+      const article = document.createElement('article');
+      article.className = `banner-slide${index === 0 ? ' is-active' : ''}`;
+
+      const hasLink = banner.link_url && banner.link_url !== '[URL]' && banner.link_url.length > 5;
+      const wrapper = document.createElement(hasLink ? 'a' : 'div');
+      wrapper.className = 'banner-media';
+
+      if (hasLink) {
+        wrapper.href = banner.link_url;
+        if (/^https?:/i.test(banner.link_url)) {
+          wrapper.target = '_blank';
+          wrapper.rel = 'noopener';
+        }
+      }
+
+      const img = document.createElement('img');
+      img.src = banner.imagen_url || getPlaceholderImage();
+      img.alt = banner.titulo || 'Banner promocional';
+      img.loading = index === 0 ? 'eager' : 'lazy';
+      img.width = 1200;
+      img.height = 420;
+      img.onerror = function () {
+        this.src = getPlaceholderImage();
+        this.onerror = null;
+      };
+
+      wrapper.appendChild(img);
+
+      if (banner.titulo) {
+        const overlay = document.createElement('div');
+        overlay.className = 'banner-overlay';
+        const title = document.createElement('h3');
+        title.className = 'banner-title';
+        title.textContent = banner.titulo;
+
+        if (banner.descripcion) {
+          const desc = document.createElement('p');
+          desc.className = 'banner-desc';
+          desc.textContent = banner.descripcion;
+          overlay.appendChild(title);
+          overlay.appendChild(desc);
+        } else {
+          overlay.appendChild(title);
+        }
+
+        if (banner.texto_boton && hasLink) {
+          const btn = document.createElement('span');
+          btn.className = 'banner-cta';
+          btn.textContent = banner.texto_boton;
+          overlay.appendChild(btn);
+        }
+
+        wrapper.appendChild(overlay);
+      }
+
+      article.appendChild(wrapper);
+      stage.appendChild(article);
+
+      const dot = document.createElement('button');
+      dot.className = `catalogo-dot${index === 0 ? ' is-active' : ''}`;
+      dot.type = 'button';
+      dot.setAttribute('role', 'tab');
+      dot.setAttribute('aria-label', `Ver ${banner.titulo || `banner ${index + 1}`}`);
+      dotsContainer.appendChild(dot);
+    });
+
     slider.classList.remove('is-loading');
-    return;
+    initializeBannerCarousel();
+  } catch (error) {
+    console.warn('Failed to load banners from sheet:', error);
+    hideBannerSection();
   }
+}
 
-  stage.innerHTML = '';
-  dotsContainer.innerHTML = '';
-
-  banners.forEach((banner, index) => {
-    const article = document.createElement('article');
-    article.className = `banner-slide${index === 0 ? ' is-active' : ''}`;
-    article.innerHTML = `
-      <div class="banner-media">
-        <img src="${banner.banner_url}" alt="${banner.titulo}" loading="${index === 0 ? 'eager' : 'lazy'}" width="1200" height="600">
-      </div>
-    `;
-    stage.appendChild(article);
-
-    const dot = document.createElement('button');
-    dot.className = `catalogo-dot${index === 0 ? ' is-active' : ''}`;
-    dot.type = 'button';
-    dot.setAttribute('role', 'tab');
-    dot.setAttribute('aria-label', `Ver ${banner.titulo}`);
-    dot.setAttribute('data-slide-index', index.toString());
-    dotsContainer.appendChild(dot);
-  });
-
-  slider.classList.remove('is-loading');
-  initializeBannerCarousel();
+function hideBannerSection() {
+  const section = document.querySelector('.banner-carousel');
+  if (section) section.style.display = 'none';
 }
 
 function initializeBannerCarousel() {
@@ -83,64 +136,84 @@ function initializeBannerCarousel() {
   let currentIndex = 0;
   let autoplayInterval;
 
+  if (slides.length <= 1) {
+    if (prevBtn) prevBtn.style.display = 'none';
+    if (nextBtn) nextBtn.style.display = 'none';
+    dotsContainer.style.display = 'none';
+  }
+
   function goToSlide(index) {
     if (index < 0) index = slides.length - 1;
     if (index >= slides.length) index = 0;
 
-    slides.forEach((slide, i) => {
-      slide.classList.toggle('is-active', i === index);
-    });
-
-    dots.forEach((dot, i) => {
-      dot.classList.toggle('is-active', i === index);
-    });
-
+    slides.forEach((slide, i) => slide.classList.toggle('is-active', i === index));
+    dots.forEach((dot, i) => dot.classList.toggle('is-active', i === index));
     currentIndex = index;
   }
 
   dots.forEach((dot, index) => {
-    dot.addEventListener('click', () => goToSlide(index));
+    dot.addEventListener('click', () => {
+      goToSlide(index);
+      resetAutoplay();
+    });
   });
 
   if (prevBtn) {
-    prevBtn.addEventListener('click', () => goToSlide(currentIndex - 1));
+    prevBtn.addEventListener('click', () => {
+      goToSlide(currentIndex - 1);
+      resetAutoplay();
+    });
   }
 
   if (nextBtn) {
-    nextBtn.addEventListener('click', () => goToSlide(currentIndex + 1));
+    nextBtn.addEventListener('click', () => {
+      goToSlide(currentIndex + 1);
+      resetAutoplay();
+    });
   }
 
   function startAutoplay() {
-    autoplayInterval = setInterval(() => {
-      goToSlide(currentIndex + 1);
-    }, 4000);
+    if (slides.length <= 1) return;
+    autoplayInterval = setInterval(() => goToSlide(currentIndex + 1), 5000);
   }
 
   function stopAutoplay() {
-    if (autoplayInterval) {
-      clearInterval(autoplayInterval);
-    }
+    if (autoplayInterval) clearInterval(autoplayInterval);
+    autoplayInterval = null;
+  }
+
+  function resetAutoplay() {
+    stopAutoplay();
+    startAutoplay();
   }
 
   startAutoplay();
+  const slider = document.querySelector('.banner-slider');
+  if (slider) {
+    slider.addEventListener('mouseenter', stopAutoplay);
+    slider.addEventListener('mouseleave', startAutoplay);
+  }
+}
 
-  stage.addEventListener('mouseenter', stopAutoplay);
-  stage.addEventListener('mouseleave', startAutoplay);
+async function loadProductosFromApi() {
+  const apiUrl = `${supabaseUrl}/functions/v1/api-catalogo`;
+
+  const response = await fetch(apiUrl, {
+    headers: { 'Authorization': `Bearer ${supabaseKey}` },
+  });
+
+  if (!response.ok) throw new Error('Failed to fetch catalog data');
+
+  const { productos } = await response.json();
+  loadProductos(productos);
 }
 
 function loadProductos(productos) {
   const stage = document.getElementById('catalogoStage');
   const dotsContainer = document.getElementById('catalogoDots');
 
-  if (!stage || !dotsContainer) {
-    console.warn('Producto elements not found');
-    return;
-  }
-
-  if (!productos || productos.length === 0) {
-    console.warn('No products found in database');
-    return;
-  }
+  if (!stage || !dotsContainer) return;
+  if (!productos || productos.length === 0) return;
 
   stage.innerHTML = '';
   dotsContainer.innerHTML = '';
@@ -158,8 +231,8 @@ function loadProductos(productos) {
         <h3 class="catalogo-title">${producto.nombre}</h3>
         <p class="catalogo-description">${producto.descripcion}</p>
         <div class="catalogo-cta-group">
-          <a class="catalogo-cta catalogo-cta--primary" href="#catalogo">Descargar catálogo</a>
-          <a class="catalogo-cta catalogo-cta--secondary" href="https://wa.me/524491964606" target="_blank" rel="noopener">Solicitar cotización</a>
+          <a class="catalogo-cta catalogo-cta--primary" href="#catalogo">Descargar catalogo</a>
+          <a class="catalogo-cta catalogo-cta--secondary" href="https://wa.me/524491964606" target="_blank" rel="noopener">Solicitar cotizacion</a>
         </div>
       </div>
     `;
@@ -170,7 +243,6 @@ function loadProductos(productos) {
     dot.type = 'button';
     dot.setAttribute('role', 'tab');
     dot.setAttribute('aria-label', `Ver ${producto.nombre}`);
-    dot.setAttribute('data-slide-index', index.toString());
     dotsContainer.appendChild(dot);
   });
 
@@ -192,15 +264,8 @@ function initializeProductosCarousel() {
   function goToSlide(index) {
     if (index < 0) index = slides.length - 1;
     if (index >= slides.length) index = 0;
-
-    slides.forEach((slide, i) => {
-      slide.classList.toggle('is-active', i === index);
-    });
-
-    dots.forEach((dot, i) => {
-      dot.classList.toggle('is-active', i === index);
-    });
-
+    slides.forEach((slide, i) => slide.classList.toggle('is-active', i === index));
+    dots.forEach((dot, i) => dot.classList.toggle('is-active', i === index));
     currentIndex = index;
   }
 
@@ -208,26 +273,14 @@ function initializeProductosCarousel() {
     dot.addEventListener('click', () => goToSlide(index));
   });
 
-  if (prevBtn) {
-    prevBtn.addEventListener('click', () => goToSlide(currentIndex - 1));
-  }
+  if (prevBtn) prevBtn.addEventListener('click', () => goToSlide(currentIndex - 1));
+  if (nextBtn) nextBtn.addEventListener('click', () => goToSlide(currentIndex + 1));
 
-  if (nextBtn) {
-    nextBtn.addEventListener('click', () => goToSlide(currentIndex + 1));
-  }
+  let autoplayInterval = setInterval(() => goToSlide(currentIndex + 1), 5000);
 
-  let autoplayInterval = setInterval(() => {
-    goToSlide(currentIndex + 1);
-  }, 5000);
-
-  stage.addEventListener('mouseenter', () => {
-    clearInterval(autoplayInterval);
-  });
-
+  stage.addEventListener('mouseenter', () => clearInterval(autoplayInterval));
   stage.addEventListener('mouseleave', () => {
-    autoplayInterval = setInterval(() => {
-      goToSlide(currentIndex + 1);
-    }, 5000);
+    autoplayInterval = setInterval(() => goToSlide(currentIndex + 1), 5000);
   });
 }
 
@@ -243,21 +296,14 @@ export async function syncGoogleSheets(spreadsheetId) {
         },
         body: JSON.stringify({
           spreadsheetId,
-          sheetNames: {
-            banners: 'Banners',
-            productos: 'Productos',
-          },
+          sheetNames: { banners: 'Banners', productos: 'Productos' },
         }),
       }
     );
 
     const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Failed to sync Google Sheets');
 
-    if (!response.ok) {
-      throw new Error(result.error || 'Failed to sync Google Sheets');
-    }
-
-    console.log('Google Sheets synced successfully:', result);
     await loadCatalogContent();
     return result;
   } catch (error) {
