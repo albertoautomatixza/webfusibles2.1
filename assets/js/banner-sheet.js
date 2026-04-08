@@ -1,7 +1,7 @@
 const SHEET_ID = '1l9vMTcBCKzzmFSIvuWTggifBZSRei1urFNnMV3IDb1M';
 const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 
-const PLACEHOLDER_IMG = 'https://placehold.co/1200x420/214464/ffffff?text=Banner';
+const PLACEHOLDER_IMG = 'https://placehold.co/1200x420/214464/E5EFF8?text=Fusibles+%26+Proteccion';
 const MAX_BANNERS = 10;
 
 let cachedBanners = null;
@@ -36,6 +36,21 @@ function isInDateRange(fechaInicio, fechaFin) {
   return true;
 }
 
+function isValidUrl(url) {
+  if (!url) return false;
+  const trimmed = url.trim();
+  if (!trimmed || trimmed === '[URL]' || trimmed.length < 6) return false;
+  return /^https?:\/\/.+/i.test(trimmed);
+}
+
+function normalizeLabel(label) {
+  return (label || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
 function parseSheetResponse(raw) {
   if (!raw) return [];
   const start = raw.indexOf('{');
@@ -49,21 +64,23 @@ function parseSheetResponse(raw) {
   const colMap = {};
   const aliases = {
     id: ['id', 'id banner'],
-    titulo: ['titulo', 'título', 'nombre', 'nombre de campaña', 'nombre de campana', 'title'],
-    imagen_url: ['imagen_url', 'url de la imagen', 'imagen', 'image', 'banner_url'],
-    link_url: ['link_url', 'url de destino', 'enlace', 'link', 'destino'],
+    titulo: ['titulo del banner', 'titulo', 'titulo banner', 'title'],
+    nombre_campana: ['nombre de campana', 'nombre de campaña', 'nombre', 'campaign', 'campana'],
+    imagen_url: ['url de la imagen', 'imagen_url', 'imagen', 'image', 'banner_url', 'url imagen'],
+    link_url: ['url de destino', 'link_url', 'enlace', 'link', 'destino'],
     activo: ['activo', 'active', 'estado'],
-    orden: ['orden', 'prioridad', 'priority', 'order'],
-    fecha_inicio: ['fecha_inicio', 'fecha de inicio', 'start', 'inicio'],
-    fecha_fin: ['fecha_fin', 'fecha de fin', 'end', 'fin'],
-    texto_boton: ['texto_boton', 'boton', 'cta', 'button'],
+    orden: ['prioridad', 'orden', 'priority', 'order'],
+    fecha_inicio: ['fecha de inicio', 'fecha_inicio', 'start', 'inicio'],
+    fecha_fin: ['fecha de fin', 'fecha_fin', 'end', 'fin'],
+    texto_boton: ['texto_boton', 'boton', 'cta', 'button', 'texto boton'],
     descripcion: ['descripcion', 'descripción', 'description', 'texto']
   };
 
   cols.forEach((col, i) => {
-    const label = (col.label || '').trim().toLowerCase();
+    const label = normalizeLabel(col?.label);
+    if (!label) return;
     for (const [key, names] of Object.entries(aliases)) {
-      if (names.includes(label) && !(key in colMap)) {
+      if (names.some((n) => normalizeLabel(n) === label) && !(key in colMap)) {
         colMap[key] = i;
       }
     }
@@ -102,10 +119,14 @@ function parseSheetResponse(raw) {
       return isActive(c.v);
     };
 
+    const titulo = val(colMap.titulo) || val(colMap.nombre_campana) || '';
+    const imagenRaw = val(colMap.imagen_url);
+    const imagen_url = isValidUrl(imagenRaw) ? imagenRaw : '';
+
     return {
       id: val(colMap.id) || '',
-      titulo: val(colMap.titulo) || '',
-      imagen_url: val(colMap.imagen_url) || '',
+      titulo,
+      imagen_url,
       link_url: val(colMap.link_url) || '',
       activo: colMap.activo !== undefined ? boolVal(colMap.activo) : true,
       orden: numVal(colMap.orden),
@@ -118,13 +139,10 @@ function parseSheetResponse(raw) {
 }
 
 function filterAndSort(banners) {
-  return banners
-    .filter((b) => b.activo)
-    .filter((b) => isInDateRange(b.fecha_inicio, b.fecha_fin))
-    .filter((b) => {
-      const url = b.imagen_url;
-      return url && url !== '[URL]' && url.length > 5;
-    })
+  const active = banners.filter((b) => b.activo);
+  const inRange = active.filter((b) => isInDateRange(b.fecha_inicio, b.fecha_fin));
+  const result = inRange.length > 0 ? inRange : active;
+  return result
     .sort((a, b) => a.orden - b.orden)
     .slice(0, MAX_BANNERS);
 }

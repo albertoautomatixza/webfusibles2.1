@@ -59,14 +59,17 @@ async function loadBannersFromSheet() {
         }
       }
 
+      const placeholderText = encodeURIComponent(banner.titulo || 'Banner');
+      const placeholderSrc = `https://placehold.co/1200x420/214464/E5EFF8?text=${placeholderText}`;
+
       const img = document.createElement('img');
-      img.src = banner.imagen_url || getPlaceholderImage();
+      img.src = banner.imagen_url || placeholderSrc;
       img.alt = banner.titulo || 'Banner promocional';
       img.loading = index === 0 ? 'eager' : 'lazy';
       img.width = 1200;
       img.height = 420;
       img.onerror = function () {
-        this.src = getPlaceholderImage();
+        this.src = placeholderSrc;
         this.onerror = null;
       };
 
