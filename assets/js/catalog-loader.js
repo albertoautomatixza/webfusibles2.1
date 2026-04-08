@@ -1,27 +1,24 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-import { fetchBanners, getPlaceholderImage } from './banner-sheet.js';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+import { fetchBanners } from './banner-sheet.js';
+import { fetchCatalogProducts, getProductsByCategory } from './catalog-sheet.js';
 
 export async function loadCatalogContent() {
   try {
     const [bannerResult, catalogResult] = await Promise.allSettled([
       loadBannersFromSheet(),
-      loadProductosFromApi()
+      loadCatalogFromSheet()
     ]);
 
     if (bannerResult.status === 'rejected') {
-      console.warn('Banner loading failed, hiding section:', bannerResult.reason);
+      console.warn('Banner loading failed:', bannerResult.reason);
       hideBannerSection();
     }
 
     if (catalogResult.status === 'rejected') {
       console.warn('Catalog loading failed:', catalogResult.reason);
+      hideCatalogSection();
     }
   } catch (error) {
-    console.error('Error loading catalog content:', error);
+    console.error('Error loading content:', error);
   }
 }
 
@@ -114,11 +111,138 @@ async function loadBannersFromSheet() {
     });
 
     slider.classList.remove('is-loading');
-    initializeBannerCarousel();
+    initializeCarousel('bannerStage', 'bannerDots', '[data-banner-prev]', '[data-banner-next]');
   } catch (error) {
-    console.warn('Failed to load banners from sheet:', error);
+    console.warn('Failed to load banners:', error);
     hideBannerSection();
   }
+}
+
+async function loadCatalogFromSheet() {
+  const stage = document.getElementById('catalogoStage');
+  const dotsContainer = document.getElementById('catalogoDots');
+
+  if (!stage || !dotsContainer) return;
+
+  try {
+    const { all, groups } = await fetchCatalogProducts();
+
+    if (!all || all.length === 0) {
+      hideCatalogSection();
+      return;
+    }
+
+    const defaultCategory = 'componentes';
+    const products = groups[defaultCategory] || all;
+    renderCatalogProducts(products);
+
+    window.filterCatalogByCategory = (category) => {
+      const key = category.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, '');
+      const filtered = getProductsByCategory(key);
+      renderCatalogProducts(filtered.length > 0 ? filtered : all);
+    };
+  } catch (error) {
+    console.warn('Failed to load catalog:', error);
+    hideCatalogSection();
+  }
+}
+
+function renderCatalogProducts(products) {
+  const stage = document.getElementById('catalogoStage');
+  const dotsContainer = document.getElementById('catalogoDots');
+
+  if (!stage || !dotsContainer) return;
+
+  stage.innerHTML = '';
+  dotsContainer.innerHTML = '';
+
+  if (!products.length) {
+    stage.innerHTML = '<div class="catalogo-empty"><p>No hay productos disponibles en esta categoria.</p></div>';
+    return;
+  }
+
+  products.forEach((product, index) => {
+    const article = document.createElement('article');
+    article.className = `catalogo-slide${index === 0 ? ' is-active' : ''}`;
+    article.setAttribute('role', 'tabpanel');
+    article.setAttribute('aria-hidden', index === 0 ? 'false' : 'true');
+
+    if (product.titulo) {
+      const title = document.createElement('h3');
+      title.className = 'catalogo-title';
+      title.textContent = product.titulo;
+      article.appendChild(title);
+    }
+
+    if (product.imagen_url) {
+      const media = document.createElement('div');
+      media.className = 'catalogo-media';
+      const img = document.createElement('img');
+      img.src = product.imagen_url;
+      img.alt = product.titulo || product.descripcion || 'Producto';
+      img.loading = index === 0 ? 'eager' : 'lazy';
+      img.width = 800;
+      img.height = 520;
+      img.onerror = function () {
+        this.parentElement.style.display = 'none';
+        this.onerror = null;
+      };
+      media.appendChild(img);
+      article.appendChild(media);
+    }
+
+    if (product.descripcion) {
+      const desc = document.createElement('p');
+      desc.className = 'catalogo-description';
+      desc.textContent = product.descripcion;
+      article.appendChild(desc);
+    }
+
+    const hasBtn1 = product.boton_1_texto && product.boton_1_link;
+    const hasBtn2 = product.boton_2_texto && product.boton_2_link;
+
+    if (hasBtn1 || hasBtn2) {
+      const ctaGroup = document.createElement('div');
+      ctaGroup.className = 'catalogo-cta-group';
+
+      if (hasBtn1) {
+        const btn1 = document.createElement('a');
+        btn1.className = 'catalogo-cta catalogo-cta--primary';
+        btn1.textContent = product.boton_1_texto;
+        btn1.href = product.boton_1_link;
+        if (/^https?:/i.test(product.boton_1_link)) {
+          btn1.target = '_blank';
+          btn1.rel = 'noopener';
+        }
+        ctaGroup.appendChild(btn1);
+      }
+
+      if (hasBtn2) {
+        const btn2 = document.createElement('a');
+        btn2.className = 'catalogo-cta catalogo-cta--secondary';
+        btn2.textContent = product.boton_2_texto;
+        btn2.href = product.boton_2_link;
+        if (/^https?:/i.test(product.boton_2_link)) {
+          btn2.target = '_blank';
+          btn2.rel = 'noopener';
+        }
+        ctaGroup.appendChild(btn2);
+      }
+
+      article.appendChild(ctaGroup);
+    }
+
+    stage.appendChild(article);
+
+    const dot = document.createElement('button');
+    dot.className = `catalogo-dot${index === 0 ? ' is-active' : ''}`;
+    dot.type = 'button';
+    dot.setAttribute('role', 'tab');
+    dot.setAttribute('aria-label', `Ver ${product.titulo || `producto ${index + 1}`}`);
+    dotsContainer.appendChild(dot);
+  });
+
+  initializeCarousel('catalogoStage', 'catalogoDots', '[data-slider-prev]', '[data-slider-next]');
 }
 
 function hideBannerSection() {
@@ -126,15 +250,20 @@ function hideBannerSection() {
   if (section) section.style.display = 'none';
 }
 
-function initializeBannerCarousel() {
-  const stage = document.getElementById('bannerStage');
-  const dotsContainer = document.getElementById('bannerDots');
-  const prevBtn = document.querySelector('[data-banner-prev]');
-  const nextBtn = document.querySelector('[data-banner-next]');
+function hideCatalogSection() {
+  const section = document.getElementById('catalogo');
+  if (section) section.style.display = 'none';
+}
+
+function initializeCarousel(stageId, dotsId, prevSelector, nextSelector) {
+  const stage = document.getElementById(stageId);
+  const dotsContainer = document.getElementById(dotsId);
+  const prevBtn = document.querySelector(prevSelector);
+  const nextBtn = document.querySelector(nextSelector);
 
   if (!stage || !dotsContainer) return;
 
-  const slides = Array.from(stage.querySelectorAll('.banner-slide'));
+  const slides = Array.from(stage.querySelectorAll('.catalogo-slide, .banner-slide'));
   const dots = Array.from(dotsContainer.querySelectorAll('.catalogo-dot'));
   let currentIndex = 0;
   let autoplayInterval;
@@ -143,13 +272,19 @@ function initializeBannerCarousel() {
     if (prevBtn) prevBtn.style.display = 'none';
     if (nextBtn) nextBtn.style.display = 'none';
     dotsContainer.style.display = 'none';
+  } else {
+    if (prevBtn) prevBtn.style.display = '';
+    if (nextBtn) nextBtn.style.display = '';
+    dotsContainer.style.display = '';
   }
 
   function goToSlide(index) {
     if (index < 0) index = slides.length - 1;
     if (index >= slides.length) index = 0;
-
-    slides.forEach((slide, i) => slide.classList.toggle('is-active', i === index));
+    slides.forEach((slide, i) => {
+      slide.classList.toggle('is-active', i === index);
+      slide.setAttribute('aria-hidden', i === index ? 'false' : 'true');
+    });
     dots.forEach((dot, i) => dot.classList.toggle('is-active', i === index));
     currentIndex = index;
   }
@@ -177,7 +312,7 @@ function initializeBannerCarousel() {
 
   function startAutoplay() {
     if (slides.length <= 1) return;
-    autoplayInterval = setInterval(() => goToSlide(currentIndex + 1), 5000);
+    autoplayInterval = setInterval(() => goToSlide(currentIndex + 1), 6000);
   }
 
   function stopAutoplay() {
@@ -191,126 +326,14 @@ function initializeBannerCarousel() {
   }
 
   startAutoplay();
-  const slider = document.querySelector('.banner-slider');
+
+  const slider = stage.closest('.banner-slider, .catalogo-slider');
   if (slider) {
     slider.addEventListener('mouseenter', stopAutoplay);
     slider.addEventListener('mouseleave', startAutoplay);
   }
 }
 
-async function loadProductosFromApi() {
-  const apiUrl = `${supabaseUrl}/functions/v1/api-catalogo`;
-
-  const response = await fetch(apiUrl, {
-    headers: { 'Authorization': `Bearer ${supabaseKey}` },
-  });
-
-  if (!response.ok) throw new Error('Failed to fetch catalog data');
-
-  const { productos } = await response.json();
-  loadProductos(productos);
-}
-
-function loadProductos(productos) {
-  const stage = document.getElementById('catalogoStage');
-  const dotsContainer = document.getElementById('catalogoDots');
-
-  if (!stage || !dotsContainer) return;
-  if (!productos || productos.length === 0) return;
-
-  stage.innerHTML = '';
-  dotsContainer.innerHTML = '';
-
-  productos.forEach((producto, index) => {
-    const article = document.createElement('article');
-    article.className = `catalogo-slide${index === 0 ? ' is-active' : ''}`;
-    article.setAttribute('data-categoria', producto.categoria);
-    article.innerHTML = `
-      <div class="catalogo-media">
-        <img src="${producto.imagen_url}" alt="${producto.nombre}" loading="lazy" width="800" height="520">
-      </div>
-      <div class="catalogo-info">
-        <span class="catalogo-pill">${producto.categoria}</span>
-        <h3 class="catalogo-title">${producto.nombre}</h3>
-        <p class="catalogo-description">${producto.descripcion}</p>
-        <div class="catalogo-cta-group">
-          <a class="catalogo-cta catalogo-cta--primary" href="#catalogo">Descargar catalogo</a>
-          <a class="catalogo-cta catalogo-cta--secondary" href="https://wa.me/524491964606" target="_blank" rel="noopener">Solicitar cotizacion</a>
-        </div>
-      </div>
-    `;
-    stage.appendChild(article);
-
-    const dot = document.createElement('button');
-    dot.className = `catalogo-dot${index === 0 ? ' is-active' : ''}`;
-    dot.type = 'button';
-    dot.setAttribute('role', 'tab');
-    dot.setAttribute('aria-label', `Ver ${producto.nombre}`);
-    dotsContainer.appendChild(dot);
-  });
-
-  initializeProductosCarousel();
-}
-
-function initializeProductosCarousel() {
-  const stage = document.getElementById('catalogoStage');
-  const dotsContainer = document.getElementById('catalogoDots');
-  const prevBtn = document.querySelector('[data-slider-prev]');
-  const nextBtn = document.querySelector('[data-slider-next]');
-
-  if (!stage || !dotsContainer) return;
-
-  const slides = Array.from(stage.querySelectorAll('.catalogo-slide'));
-  const dots = Array.from(dotsContainer.querySelectorAll('.catalogo-dot'));
-  let currentIndex = 0;
-
-  function goToSlide(index) {
-    if (index < 0) index = slides.length - 1;
-    if (index >= slides.length) index = 0;
-    slides.forEach((slide, i) => slide.classList.toggle('is-active', i === index));
-    dots.forEach((dot, i) => dot.classList.toggle('is-active', i === index));
-    currentIndex = index;
-  }
-
-  dots.forEach((dot, index) => {
-    dot.addEventListener('click', () => goToSlide(index));
-  });
-
-  if (prevBtn) prevBtn.addEventListener('click', () => goToSlide(currentIndex - 1));
-  if (nextBtn) nextBtn.addEventListener('click', () => goToSlide(currentIndex + 1));
-
-  let autoplayInterval = setInterval(() => goToSlide(currentIndex + 1), 5000);
-
-  stage.addEventListener('mouseenter', () => clearInterval(autoplayInterval));
-  stage.addEventListener('mouseleave', () => {
-    autoplayInterval = setInterval(() => goToSlide(currentIndex + 1), 5000);
-  });
-}
-
-export async function syncGoogleSheets(spreadsheetId) {
-  try {
-    const response = await fetch(
-      `${supabaseUrl}/functions/v1/sync-google-sheets`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseKey}`,
-        },
-        body: JSON.stringify({
-          spreadsheetId,
-          sheetNames: { banners: 'Banners', productos: 'Productos' },
-        }),
-      }
-    );
-
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Failed to sync Google Sheets');
-
-    await loadCatalogContent();
-    return result;
-  } catch (error) {
-    console.error('Error syncing Google Sheets:', error);
-    throw error;
-  }
+export async function syncGoogleSheets() {
+  await loadCatalogContent();
 }
