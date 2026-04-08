@@ -192,7 +192,7 @@ import { loadCatalogContent, syncGoogleSheets } from './catalog-loader.js';
       { alt: "Arno Canali", width: 120, height: 42, src: "/logos/arnocanali.svg" },
       { alt: "Klein Tools", width: 120, height: 42, src: "/logos/klein-tools.svg" },
       { alt: "Weidmüller", width: 130, height: 44, src: "/logos/weidmmuller.svg" },
-      { alt: "HELUKABEL", width: 120, height: 42, src: "/logos/hellukabel.svg" },
+      { alt: "HELUKABEL", width: 120, height: 42, src: "/logos/hellu_logo_web.svg" },
       { alt: "Legrand", width: 130, height: 44, src: "/logos/legrand.svg" },
       { alt: "Kyoritsu", width: 130, height: 44, src: "/logos/kyoritsu.svg" },
       { alt: "REER", width: 120, height: 42, src: "/logos/reer.svg" },
