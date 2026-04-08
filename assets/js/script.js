@@ -1193,8 +1193,15 @@ import { loadCatalogContent, syncGoogleSheets } from './catalog-loader.js';
     };
 
     const buildCurvePath = (sx, sy, ex, ey) => {
-      const controlY = sy - (sy - ey) * 0.5;
-      return `M ${sx},${sy} Q ${(sx + ex) / 2},${controlY} ${ex},${ey}`;
+      const isLeft = sx < ex;
+      const curvature = 0.4;
+      const dx = ex - sx;
+      const dy = ey - sy;
+      const cx1 = sx + dx * curvature;
+      const cy1 = sy;
+      const cx2 = ex - dx * curvature;
+      const cy2 = ey;
+      return `M ${sx},${sy} C ${cx1},${cy1} ${cx2},${cy2} ${ex},${ey}`;
     };
 
     const update = () => {
